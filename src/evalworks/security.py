@@ -40,8 +40,14 @@ async def request_limits(request: Request, call_next):
             for host in [host for host, events in _windows.items() if not events]:
                 _windows.pop(host, None)
 
+    body_sent = False
+
     async def receive():
-        return {"type": "http.request", "body": body, "more_body": False}
+        nonlocal body_sent
+        if not body_sent:
+            body_sent = True
+            return {"type": "http.request", "body": body, "more_body": False}
+        return {"type": "http.disconnect"}
 
     request._receive = receive
     response = await call_next(request)
