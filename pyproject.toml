@@ -17,6 +17,8 @@ dependencies = [
   "pwdlib[argon2]>=0.2,<1.0",
   "PyJWT>=2.10,<3.0",
   "email-validator>=2.2,<3.0",
+  "cryptography>=44,<50",
+  "redis>=5.2,<7",
 ]
 
 [project.optional-dependencies]

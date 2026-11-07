@@ -85,3 +85,7 @@ class UserCreateInput(BaseModel):
     email: EmailStr
     password: str = Field(min_length=14, max_length=200)
     role: str = Field(default="reviewer", pattern="^(admin|reviewer|viewer)$")
+
+
+class EvaluationJobInput(EvaluationInput):
+    project: str = Field(min_length=1, max_length=48, pattern="^[a-z0-9-]+$")

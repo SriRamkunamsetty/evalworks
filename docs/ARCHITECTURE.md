@@ -6,6 +6,9 @@ EvalWorks is a modular monolith. It is small enough for a new contributor to und
 flowchart LR
     Reviewer[Reviewer browser] -->|Session cookie + CSRF| API[FastAPI v1]
     API --> Modules[Ten evaluation modules]
+    API --> Jobs[Encrypted durable job table]
+    Worker[Evaluation worker replicas] --> Jobs
+    API --> Redis[(Redis shared rate limits)]
     API --> Tenant[Workspace scoped access]
     Tenant --> Store[(SQLAlchemy database)]
     API --> Provider[Configured OpenAI-compatible provider]
@@ -18,7 +21,7 @@ flowchart LR
 
 ## Request lifecycle
 
-1. Request-size limits and basic in-process rate limiting run before the API route.
+1. Request-size limits and shared Redis-backed rate limits run before the API route in production; local development can use the in-process fallback.
 2. Production routes load an active user from a signed session, then enforce role and workspace scope. Local development can use the development API key.
 3. Pydantic validates the request shape; each evaluator applies its own domain limits.
 4. Deterministic evaluators prepare structured signals and always mark subjective work for human review.
@@ -37,4 +40,4 @@ The optional model adapter only uses the configured server-side endpoint. The pr
 
 ## Current scaling profile
 
-One API process, synchronous model calls, SQLAlchemy pooling, and local rate limiting are appropriate for local development or a private single-instance demo. The current release includes user sessions and tenant isolation, but not durable background jobs, shared rate limiting, SSO/MFA, account recovery, or full retention/consent workflows. A multi-replica deployment needs a distributed rate limiter and managed database; asynchronous workloads need a durable queue with retries, idempotency, and explicit data-retention rules.
+The async evaluation path persists encrypted payloads, uses database row leases for worker coordination, applies idempotency per workspace, retries transient failures with backoff, and clears payload ciphertext after completion. PostgreSQL workers claim jobs with skip-locked row locking. SQLite remains a local/demo option with a single worker. SSO/MFA, account recovery, organization-specific retention/consent workflows, and cloud-managed Redis/database provisioning remain future work.

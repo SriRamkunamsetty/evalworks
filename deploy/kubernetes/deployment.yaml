@@ -41,6 +41,16 @@ spec:
                 secretKeyRef:
                   name: evalworks-runtime
                   key: session-secret
+            - name: DATA_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: evalworks-runtime
+                  key: data-encryption-key
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: evalworks-runtime
+                  key: redis-url
             - name: COOKIE_SECURE
               value: "true"
             - name: DATABASE_URL

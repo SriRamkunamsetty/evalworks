@@ -11,7 +11,9 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./.data/evalworks.db"
     api_key: str = "local-dev-key-change-me"
     session_secret: str = "development-secret-change-before-deploying-32-chars-minimum"
+    data_encryption_key: str = "development-data-encryption-key-change-before-deploying"
     cookie_secure: bool = False
+    redis_url: str = ""
     max_request_bytes: int = 65_536
     allowed_origins: str = "http://localhost:8000"
     llm_base_url: str = ""
@@ -34,6 +36,16 @@ def validate_production_settings() -> None:
             raise RuntimeError(
                 "Production requires a unique SESSION_SECRET of at least 32 characters"
             )
+        if (
+            len(settings.data_encryption_key) < 32
+            or settings.data_encryption_key.startswith("development-")
+            or settings.data_encryption_key in {settings.api_key, settings.session_secret}
+        ):
+            raise RuntimeError(
+                "Production requires a unique DATA_ENCRYPTION_KEY of at least 32 characters"
+            )
+        if not settings.redis_url.startswith("rediss://"):
+            raise RuntimeError("Production requires a TLS protected REDIS_URL using rediss://")
         if not settings.cookie_secure:
             raise RuntimeError("Production requires COOKIE_SECURE=true")
         if settings.database_url.startswith("sqlite"):

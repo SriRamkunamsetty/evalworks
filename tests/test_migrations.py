@@ -19,7 +19,14 @@ def test_initial_migration_creates_expected_tables(tmp_path, monkeypatch):
 
     engine = create_engine(f"sqlite:///{database.as_posix()}")
     names = set(inspect(engine).get_table_names())
-    assert {"evaluation_runs", "review_feedback", "workspaces", "users", "alembic_version"} <= names
+    assert {
+        "evaluation_runs",
+        "review_feedback",
+        "workspaces",
+        "users",
+        "evaluation_jobs",
+        "alembic_version",
+    } <= names
     columns = {column["name"] for column in inspect(engine).get_columns("evaluation_runs")}
     assert "metadata" in columns
     assert {"workspace_id", "created_by"} <= columns

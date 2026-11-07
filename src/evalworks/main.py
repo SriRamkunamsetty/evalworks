@@ -4,13 +4,14 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from redis.exceptions import RedisError
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from evalworks.api import auth_router, router
 from evalworks.config import settings, validate_production_settings
 from evalworks.db import engine
-from evalworks.security import RequestLimitsMiddleware
+from evalworks.security import RequestLimitsMiddleware, close_redis, redis_client
 
 WEB_ROOT = Path(__file__).parent / "web"
 
@@ -18,7 +19,10 @@ WEB_ROOT = Path(__file__).parent / "web"
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     validate_production_settings()
-    yield
+    try:
+        yield
+    finally:
+        await close_redis()
 
 
 app = FastAPI(title=settings.app_name, version="0.1.0", lifespan=lifespan)
@@ -42,12 +46,16 @@ def health():
 
 
 @app.get("/health/ready", include_in_schema=False)
-def readiness():
+async def readiness():
     try:
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
+        if settings.redis_url:
+            await redis_client().ping()
     except SQLAlchemyError as exc:
         raise HTTPException(status_code=503, detail="Database is unavailable") from exc
+    except RedisError as exc:
+        raise HTTPException(status_code=503, detail="Rate limit service is unavailable") from exc
     return {"status": "ready", "service": settings.app_name}
 
 

@@ -65,3 +65,37 @@ class ReviewFeedback(Base):
     label: Mapped[str] = mapped_column(String(40))
     rationale: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class EvaluationJob(Base):
+    __tablename__ = "evaluation_jobs"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('queued', 'running', 'succeeded', 'failed')", name="ck_jobs_status"
+        ),
+        UniqueConstraint("workspace_id", "idempotency_key", name="uq_job_idempotency"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    workspace_id: Mapped[str] = mapped_column(ForeignKey("workspaces.id"), index=True)
+    created_by: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    project: Mapped[str] = mapped_column(String(48))
+    idempotency_key: Mapped[str] = mapped_column(String(128))
+    input_digest: Mapped[str] = mapped_column(String(64))
+    payload_ciphertext: Mapped[str] = mapped_column(Text)
+    metadata_json: Mapped[dict] = mapped_column("metadata", JSON, default=dict)
+    status: Mapped[str] = mapped_column(String(16), default="queued", index=True)
+    attempts: Mapped[int] = mapped_column(default=0)
+    max_attempts: Mapped[int] = mapped_column(default=3)
+    available_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, index=True
+    )
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    run_id: Mapped[str | None] = mapped_column(
+        ForeignKey("evaluation_runs.id", ondelete="SET NULL")
+    )
+    error_code: Mapped[str | None] = mapped_column(String(40))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, index=True
+    )
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

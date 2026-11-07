@@ -15,7 +15,9 @@ def test_production_requires_tls_for_external_model_provider(monkeypatch):
     monkeypatch.setattr(settings, "app_env", "production")
     monkeypatch.setattr(settings, "api_key", "secure-random-key-of-at-least-thirty-two-chars")
     monkeypatch.setattr(settings, "session_secret", "a" * 48)
+    monkeypatch.setattr(settings, "data_encryption_key", "b" * 48)
     monkeypatch.setattr(settings, "cookie_secure", True)
+    monkeypatch.setattr(settings, "redis_url", "rediss://cache.test:6380/0")
     monkeypatch.setattr(
         settings, "database_url", "postgresql+psycopg://user:pass@db.test/evalworks"
     )
@@ -28,7 +30,9 @@ def test_production_requires_distinct_session_secret(monkeypatch):
     monkeypatch.setattr(settings, "app_env", "production")
     monkeypatch.setattr(settings, "api_key", "secure-random-key-of-at-least-thirty-two-chars")
     monkeypatch.setattr(settings, "session_secret", settings.api_key)
+    monkeypatch.setattr(settings, "data_encryption_key", "b" * 48)
     monkeypatch.setattr(settings, "cookie_secure", True)
+    monkeypatch.setattr(settings, "redis_url", "rediss://cache.test:6380/0")
     monkeypatch.setattr(
         settings, "database_url", "postgresql+psycopg://user:pass@db.test/evalworks"
     )

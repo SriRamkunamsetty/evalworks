@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
-from sqlalchemy import delete, select
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
+from sqlalchemy import delete, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -14,13 +14,15 @@ from evalworks.auth import (
     require_roles,
     set_session_cookies,
 )
+from evalworks.jobs import encrypt_payload
 from evalworks.llm import LLMUnavailable, chat, propose_probe_cases
-from evalworks.models import EvaluationRun, ReviewFeedback, User
+from evalworks.models import EvaluationJob, EvaluationRun, ReviewFeedback, User
 from evalworks.privacy import digest_payload, redact_result
 from evalworks.projects import PROJECT_BY_SLUG, PROJECTS
 from evalworks.schemas import (
     ChatInput,
     EvaluationInput,
+    EvaluationJobInput,
     FeedbackInput,
     LoginInput,
     ProbePlanInput,
@@ -140,6 +142,96 @@ def evaluate_project(
         "input_digest": run.input_digest,
         "metadata": run.run_metadata,
         "result": result,
+    }
+
+
+@router.post("/jobs", status_code=status.HTTP_202_ACCEPTED)
+def submit_evaluation_job(
+    request: EvaluationJobInput,
+    idempotency_key: str = Header(
+        alias="Idempotency-Key", min_length=8, max_length=128, pattern="^[A-Za-z0-9._:-]+$"
+    ),
+    actor: Actor = Depends(require_roles("admin", "reviewer")),
+    db: Session = Depends(get_db),
+):
+    project = PROJECT_BY_SLUG.get(request.project)
+    if project is None:
+        raise HTTPException(status_code=404, detail="Unknown project")
+    input_digest = digest_payload(request.payload)
+    existing = db.scalar(
+        select(EvaluationJob).where(
+            EvaluationJob.workspace_id == actor.workspace_id,
+            EvaluationJob.idempotency_key == idempotency_key,
+        )
+    )
+    if existing:
+        if existing.input_digest != input_digest or existing.project != request.project:
+            raise HTTPException(
+                status_code=409, detail="Idempotency key was already used for a different request"
+            )
+        return {"id": existing.id, "status": existing.status, "run_id": existing.run_id}
+    active_jobs = db.scalar(
+        select(func.count())
+        .select_from(EvaluationJob)
+        .where(
+            EvaluationJob.workspace_id == actor.workspace_id,
+            EvaluationJob.status.in_(("queued", "running")),
+        )
+    )
+    if active_jobs >= 100:
+        raise HTTPException(status_code=429, detail="Workspace evaluation queue is full")
+    job = EvaluationJob(
+        workspace_id=actor.workspace_id,
+        created_by=None if actor.id == "local" else actor.id,
+        project=request.project,
+        idempotency_key=idempotency_key,
+        input_digest=input_digest,
+        payload_ciphertext=encrypt_payload(request.payload),
+        metadata_json=request.run_metadata,
+    )
+    db.add(job)
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        existing = db.scalar(
+            select(EvaluationJob).where(
+                EvaluationJob.workspace_id == actor.workspace_id,
+                EvaluationJob.idempotency_key == idempotency_key,
+            )
+        )
+        if (
+            existing
+            and existing.input_digest == input_digest
+            and existing.project == request.project
+        ):
+            return {"id": existing.id, "status": existing.status, "run_id": existing.run_id}
+        raise HTTPException(status_code=409, detail="Idempotency key conflict") from exc
+    db.refresh(job)
+    return {"id": job.id, "status": job.status, "run_id": None}
+
+
+@router.get("/jobs/{job_id}")
+def get_evaluation_job(
+    job_id: str, actor: Actor = Depends(require_actor), db: Session = Depends(get_db)
+):
+    job = db.scalar(
+        select(EvaluationJob).where(
+            EvaluationJob.id == job_id,
+            EvaluationJob.workspace_id == actor.workspace_id,
+        )
+    )
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return {
+        "id": job.id,
+        "project": job.project,
+        "status": job.status,
+        "attempts": job.attempts,
+        "run_id": job.run_id,
+        "error_code": job.error_code,
+        "created_at": job.created_at,
+        "updated_at": job.updated_at,
     }
 
 
