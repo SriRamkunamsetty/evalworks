@@ -11,12 +11,27 @@ def evaluate(payload: dict[str, Any]) -> dict[str, Any]:
         for m in modalities
     ):
         raise ValueError("modalities contains an unsupported value")
+    evidence_ids = payload.get("evidence_ids", [])
+    if (
+        not isinstance(evidence_ids, list)
+        or len(evidence_ids) > 100
+        or any(
+            not isinstance(item, str) or not item.strip() or len(item) > 120
+            for item in evidence_ids
+        )
+    ):
+        raise ValueError("evidence_ids must contain at most 100 non-empty identifiers")
+    if any(
+        not isinstance(item, str) or not item.strip() or len(item) > 1000 for item in observations
+    ):
+        raise ValueError("expected_observations entries must be non-empty text up to 1000 chars")
     return {
         "modalities": modalities,
+        "evidence_ids": [item.strip() for item in evidence_ids],
         "observation_count": len(observations),
         "review_dimensions": ["input grounding", "omissions", "unsupported details", "uncertainty"],
         "review_checklist": [
-            {"observation": str(item)[:1000], "status": "pending"} for item in observations
+            {"observation": item.strip(), "status": "pending"} for item in observations
         ],
         **human_review(
             "Compare the answer with the supplied media; do not upload sensitive media to the demo."

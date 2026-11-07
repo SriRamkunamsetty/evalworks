@@ -60,7 +60,7 @@ All API requests are versioned under `/api/v1`. Development can use `X-API-Key`;
 
 ## Optional LLM agent
 
-Set `LLM_BASE_URL`, `LLM_API_KEY`, and `LLM_MODEL` to an OpenAI-compatible chat-completions endpoint. Then call `POST /api/v1/agents/probe-plan`. The agent returns draft scenarios only; it does not run them against a target or silently add them to a benchmark.
+Set `LLM_BASE_URL`, `LLM_API_KEY`, and `LLM_MODEL` to an OpenAI-compatible chat-completions endpoint. Then call `POST /api/v1/agents/probe-plan` for drafts. Authorized reviewers can run up to five approved cases per request with `POST /api/v1/projects/probefleet/execute`; the server uses only the configured provider, never a caller-supplied target URL, and persists redacted run results for human review.
 
 ## Test and quality checks
 
@@ -69,14 +69,14 @@ python -m ruff check .
 python -m pytest -q
 ```
 
-GitHub Actions runs lint, tests, and a Docker image build on pushes and pull requests. Tests use an isolated in-memory database and do not call external model APIs.
+GitHub Actions runs lint, tests, dependency auditing, compilation, and a Docker image build on pushes and pull requests. Tests use an isolated in-memory database and do not call external model APIs.
 
-Publishing a version tag (`vX.Y.Z`) builds and publishes a container image to GitHub Container Registry. Kubernetes templates are in `deploy/kubernetes`; replace the sample image name and create the referenced secret with a managed PostgreSQL URL, TLS Redis URL, API key, session secret, and encryption key before applying them. Apply the worker template to run the job processor. Run `python -m alembic upgrade head` as a release step before deploying a new version.
+Publishing a version tag (`vX.Y.Z`) builds and publishes an SBOM- and provenance-enabled container image to GitHub Container Registry. Kubernetes templates are in `deploy/kubernetes`; replace the sample image name and create the referenced secrets with a managed PostgreSQL URL, TLS Redis URL, API key, session secret, data HMAC key, and data encryption key before applying them. Apply the worker template to run the job processor. Run `python -m alembic upgrade head` as a release step before deploying a new version.
 
 ## Security and deployment notes
 
 - Never commit `.env`, API keys, private conversations, or personal data.
-- The development API key is supported only outside production. Production mode rejects SQLite, the development API key, weak or reused secrets, insecure cookies, and non-TLS Redis URLs. Set `APP_ENV=production`, independent random `API_KEY`, `SESSION_SECRET`, and `DATA_ENCRYPTION_KEY` values (each at least 32 characters), `COOKIE_SECURE=true`, `REDIS_URL=rediss://…`, and a managed database URL.
+- The development API key is supported only outside production. Production mode rejects SQLite, the development API key, weak or reused secrets, insecure cookies, and non-TLS Redis URLs. Set `APP_ENV=production`, independent random `API_KEY`, `SESSION_SECRET`, `DATA_HMAC_KEY`, and `DATA_ENCRYPTION_KEY` values (each at least 32 characters), `COOKIE_SECURE=true`, `REDIS_URL=rediss://…`, and a managed database URL. For model calls, use HTTPS and configure the provider hostname in `LLM_ALLOWED_HOSTS`.
 - Redis-backed login and general rate limits are shared across API replicas. Set correct client IP forwarding only at a trusted ingress and retain gateway-level abuse controls.
 - Add organization-specific retention, deletion, and consent controls before using real user conversations.
 - Do not treat heuristic measurements or LLM judgments as ground truth. Record reviewer rationale and uncertainty.
@@ -87,4 +87,4 @@ The architecture is split into independent evaluators and a small API orchestrat
 
 ## Current limitations
 
-The repository has ten working structured evaluation flows, workspace-scoped storage, session authentication and roles, encrypted durable jobs with retry leases, shared rate limits, a reviewer UI, CI, container builds, and database migrations. It is a production-oriented reference implementation, not a hosted service or a claim of independently certified security. Cloud-specific managed-service automation, SSO/MFA, account recovery, organization-specific retention/consent workflows, and external evaluation integrations remain follow-up work before exposing it to sensitive real-world workloads.
+The repository has ten structured evaluation workflows, including authorized ProbeFleet execution against an allowlisted server-configured provider. It includes workspace-scoped storage, session authentication and roles, encrypted durable jobs with retry leases, shared rate limits, a reviewer UI, CI, container builds, and database migrations. It is a production-oriented reference implementation, not a hosted service or a claim of independently certified security. Cloud-specific managed-service automation, SSO/MFA, account recovery, organization-specific retention/consent workflows, and external evaluation integrations remain follow-up work before exposing it to sensitive real-world workloads.

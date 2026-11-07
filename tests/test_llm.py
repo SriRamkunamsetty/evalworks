@@ -23,11 +23,18 @@ def configure_provider(monkeypatch):
     monkeypatch.setattr(llm.settings, "llm_model", "test-model")
 
 
+def mock_opener(monkeypatch, callback):
+    class FakeOpener:
+        def open(self, request, timeout):
+            return callback(request, timeout)
+
+    monkeypatch.setattr(llm.urllib.request, "build_opener", lambda *_handlers: FakeOpener())
+
+
 def test_chat_provider_returns_answer_without_saving_input(monkeypatch):
     configure_provider(monkeypatch)
-    monkeypatch.setattr(
-        llm.urllib.request,
-        "urlopen",
+    mock_opener(
+        monkeypatch,
         lambda _request, timeout: FakeResponse(
             {"model": "test-model", "choices": [{"message": {"content": "A test answer"}}]}
         ),
@@ -65,7 +72,7 @@ def test_probe_agent_requests_json_and_returns_reviewable_drafts(monkeypatch):
             }
         )
 
-    monkeypatch.setattr(llm.urllib.request, "urlopen", fake_urlopen)
+    mock_opener(monkeypatch, fake_urlopen)
     cases = llm.propose_probe_cases("Test ambiguity handling", 2)
     assert captured["body"]["response_format"] == {"type": "json_object"}
     assert cases[0]["prompt"] == "Clarify the request"

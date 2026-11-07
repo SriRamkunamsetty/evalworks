@@ -56,6 +56,11 @@ spec:
                 secretKeyRef:
                   name: evalworks-runtime
                   key: data-encryption-key
+            - name: DATA_HMAC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: evalworks-runtime
+                  key: data-hmac-key
           resources:
             requests:
               cpu: 100m

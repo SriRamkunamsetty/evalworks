@@ -1,6 +1,25 @@
+import socket
+
 import pytest
 
 from evalworks.config import settings, validate_production_settings
+
+
+def configure_production(monkeypatch):
+    monkeypatch.setattr(settings, "app_env", "production")
+    monkeypatch.setattr(settings, "api_key", "secure-random-key-of-at-least-thirty-two-chars")
+    monkeypatch.setattr(settings, "session_secret", "session-secret-value-distinct-32-characters")
+    monkeypatch.setattr(settings, "data_hmac_key", "hmac-key-value-distinct-from-other-keys-32")
+    monkeypatch.setattr(
+        settings, "data_encryption_key", "encryption-key-distinct-from-other-keys-32"
+    )
+    monkeypatch.setattr(settings, "cookie_secure", True)
+    monkeypatch.setattr(settings, "redis_url", "rediss://cache.test:6380/0")
+    monkeypatch.setattr(
+        settings, "database_url", "postgresql+psycopg://user:pass@db.test/evalworks"
+    )
+    monkeypatch.setattr(settings, "llm_base_url", "")
+    monkeypatch.setattr(settings, "llm_allowed_hosts", "")
 
 
 def test_production_rejects_development_secret_and_sqlite(monkeypatch):
@@ -11,31 +30,53 @@ def test_production_rejects_development_secret_and_sqlite(monkeypatch):
         validate_production_settings()
 
 
-def test_production_requires_tls_for_external_model_provider(monkeypatch):
-    monkeypatch.setattr(settings, "app_env", "production")
-    monkeypatch.setattr(settings, "api_key", "secure-random-key-of-at-least-thirty-two-chars")
-    monkeypatch.setattr(settings, "session_secret", "a" * 48)
-    monkeypatch.setattr(settings, "data_encryption_key", "b" * 48)
-    monkeypatch.setattr(settings, "cookie_secure", True)
-    monkeypatch.setattr(settings, "redis_url", "rediss://cache.test:6380/0")
-    monkeypatch.setattr(
-        settings, "database_url", "postgresql+psycopg://user:pass@db.test/evalworks"
-    )
+def test_production_requires_https_for_model_endpoint(monkeypatch):
+    configure_production(monkeypatch)
     monkeypatch.setattr(settings, "llm_base_url", "http://provider.example/v1")
     with pytest.raises(RuntimeError, match="HTTPS"):
         validate_production_settings()
 
 
 def test_production_requires_distinct_session_secret(monkeypatch):
-    monkeypatch.setattr(settings, "app_env", "production")
-    monkeypatch.setattr(settings, "api_key", "secure-random-key-of-at-least-thirty-two-chars")
+    configure_production(monkeypatch)
     monkeypatch.setattr(settings, "session_secret", settings.api_key)
-    monkeypatch.setattr(settings, "data_encryption_key", "b" * 48)
-    monkeypatch.setattr(settings, "cookie_secure", True)
-    monkeypatch.setattr(settings, "redis_url", "rediss://cache.test:6380/0")
-    monkeypatch.setattr(
-        settings, "database_url", "postgresql+psycopg://user:pass@db.test/evalworks"
-    )
-    monkeypatch.setattr(settings, "llm_base_url", "")
     with pytest.raises(RuntimeError, match="SESSION_SECRET"):
+        validate_production_settings()
+
+
+def test_production_requires_distinct_data_fingerprint_key(monkeypatch):
+    configure_production(monkeypatch)
+    monkeypatch.setattr(settings, "data_hmac_key", settings.session_secret)
+    with pytest.raises(RuntimeError, match="DATA_HMAC_KEY"):
+        validate_production_settings()
+
+
+def test_production_requires_distinct_payload_encryption_key(monkeypatch):
+    configure_production(monkeypatch)
+    monkeypatch.setattr(settings, "data_encryption_key", settings.data_hmac_key)
+    with pytest.raises(RuntimeError, match="DATA_ENCRYPTION_KEY"):
+        validate_production_settings()
+
+
+def test_production_model_endpoint_requires_allowlisted_public_hostname(monkeypatch):
+    configure_production(monkeypatch)
+    monkeypatch.setattr(settings, "llm_base_url", "https://provider.example/v1")
+    monkeypatch.setattr(settings, "llm_allowed_hosts", "provider.example")
+    monkeypatch.setattr(
+        socket,
+        "getaddrinfo",
+        lambda *_args, **_kwargs: [(None, None, None, None, ("93.184.216.34", 443))],
+    )
+    validate_production_settings()
+
+    monkeypatch.setattr(settings, "llm_allowed_hosts", "other.example")
+    with pytest.raises(RuntimeError, match="LLM_ALLOWED_HOSTS"):
+        validate_production_settings()
+    monkeypatch.setattr(settings, "llm_allowed_hosts", "provider.example")
+    monkeypatch.setattr(
+        socket,
+        "getaddrinfo",
+        lambda *_args, **_kwargs: [(None, None, None, None, ("127.0.0.1", 443))],
+    )
+    with pytest.raises(RuntimeError, match="public addresses"):
         validate_production_settings()

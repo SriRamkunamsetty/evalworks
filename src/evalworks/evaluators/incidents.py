@@ -1,3 +1,5 @@
+import hashlib
+import re
 from typing import Any
 
 from evalworks.evaluators.common import human_review, required_text
@@ -13,13 +15,17 @@ def evaluate(payload: dict[str, Any]) -> dict[str, Any]:
     severity = payload.get("severity", "medium")
     if severity not in _SEVERITIES:
         raise ValueError("severity must be low, medium, high, or critical")
+    normalized_case = "\n".join((test_prompt.strip(), expected.strip())).casefold()
+    fingerprint = hashlib.sha256(re.sub(r"\s+", " ", normalized_case).encode()).hexdigest()
     return {
         "regression_case": {
+            "fingerprint": fingerprint,
             "title": title,
             "prompt": test_prompt,
             "expected_behavior": expected,
             "severity": severity,
             "status": "draft",
+            "promotion_requires_approval": True,
         },
         "finding": finding,
         "ready_for_review": True,

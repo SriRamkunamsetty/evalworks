@@ -3,12 +3,18 @@ import time
 import urllib.error
 import urllib.request
 from typing import Any
+from urllib.request import HTTPRedirectHandler
 
 from evalworks.config import settings
 
 
 class LLMUnavailable(RuntimeError):
     pass
+
+
+class _NoRedirect(HTTPRedirectHandler):
+    def redirect_request(self, request, file, code, message, headers, new_url):
+        return None
 
 
 def _completion(
@@ -30,7 +36,8 @@ def _completion(
         method="POST",
     )
     try:
-        with urllib.request.urlopen(request, timeout=30) as response:
+        opener = urllib.request.build_opener(_NoRedirect())
+        with opener.open(request, timeout=30) as response:
             result: dict[str, Any] = json.loads(response.read(1_000_000))
         content = result["choices"][0]["message"]["content"]
         if not isinstance(content, str) or len(content) > 32000:

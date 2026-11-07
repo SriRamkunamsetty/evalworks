@@ -1,9 +1,14 @@
 import pytest
 
 from evalworks.evaluators.accessibility import evaluate as evaluate_accessibility
+from evalworks.evaluators.evidence import evaluate as evaluate_evidence
 from evalworks.evaluators.incidents import evaluate as evaluate_incident
+from evalworks.evaluators.indic import evaluate as evaluate_indic
 from evalworks.evaluators.judgebench import evaluate as evaluate_judgebench
 from evalworks.evaluators.memory import evaluate as evaluate_memory
+from evalworks.evaluators.multimodal import evaluate as evaluate_multimodal
+from evalworks.evaluators.probes import evaluate as evaluate_probes
+from evalworks.evaluators.review import evaluate as evaluate_review
 from evalworks.evaluators.safety import evaluate as evaluate_safety
 
 
@@ -57,3 +62,66 @@ def test_incident_rejects_unknown_severity():
                 "severity": "urgent",
             }
         )
+
+
+def test_judgebench_multi_rater_reports_error_and_correlation():
+    from evalworks.evaluators.judgebench import evaluate
+
+    result = evaluate({"human_scores": [1, 3, 5], "judge_scores": [2, 3, 4], "scale": 5})
+    assert result["multi_rater_analysis"]["mean_absolute_error"] == pytest.approx(2 / 3, abs=0.0001)
+    assert result["multi_rater_analysis"]["pearson_correlation"] == 1
+
+
+def test_memory_bench_supports_normalized_aliases_and_opt_out():
+    result = evaluate_memory(
+        {
+            "expected_facts": [
+                {"fact": "café", "aliases": ["coffee"], "should_recall": True},
+                {"fact": "secret", "should_recall": False},
+            ],
+            "answer": "Coffee is preferred; secret is omitted.",
+        }
+    )
+    assert result["checks"][0]["literal_match"] is True
+    assert result["checks"][1]["possible_failure"] is True
+
+
+def test_evidence_rejects_insecure_and_malformed_citations():
+    for source in (
+        "http://example.com",
+        {"source_id": "source-1", "url": "https://user:pass@example.com"},
+    ):
+        with pytest.raises(ValueError):
+            evaluate_evidence({"claims": [{"claim": "Claim", "sources": [source]}]})
+
+
+def test_indiceval_counts_requested_script_after_normalization():
+    result = evaluate_indic({"language": "Hindi", "prompt": "Q", "answer": "नमस्ते"})
+    assert result["detected_script"] == "hindi"
+    assert result["requested_script_letter_ratio"] == 1
+
+
+def test_multimodal_requires_explicit_safe_observation_ids():
+    result = evaluate_multimodal(
+        {
+            "modalities": ["image"],
+            "expected_observations": ["red sign"],
+            "evidence_ids": ["frame-1"],
+        }
+    )
+    assert result["review_checklist"][0]["status"] == "pending"
+    with pytest.raises(ValueError):
+        evaluate_multimodal({"modalities": ["image"], "expected_observations": [None]})
+
+
+def test_review_and_probe_workflows_validate_rubrics_and_tags():
+    review = evaluate_review(
+        {"conversation": [{"role": "user", "content": "Hi"}], "rubric": ["factuality"]}
+    )
+    assert review["rubric"] == ["factuality"]
+    with pytest.raises(ValueError):
+        evaluate_review({"conversation": [{"role": "systematic", "content": "Hi"}]})
+    probes = evaluate_probes(
+        {"objective": "injection", "prompts": ["Try safely"], "tags": ["jailbreak"]}
+    )
+    assert probes["cases"][0]["requires_human_approval"] is True

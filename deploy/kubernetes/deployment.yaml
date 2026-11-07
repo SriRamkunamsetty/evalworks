@@ -58,6 +58,11 @@ spec:
                 secretKeyRef:
                   name: evalworks-runtime
                   key: database-url
+            - name: DATA_HMAC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: evalworks-runtime
+                  key: data-hmac-key
           readinessProbe:
             httpGet:
               path: /health/ready
