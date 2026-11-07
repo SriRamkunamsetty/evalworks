@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Human-centered AI response testing, review, and regression workflows." />
+    <title>EvalWorks · AI quality workbench</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/chat.css" />
+  </head>
+  <body>
+    <header class="topbar"><a class="brand" href="/" aria-label="EvalWorks home"><span class="brand-mark">E</span><span>evalworks</span></a><span class="status"><i></i> Local workspace</span></header>
+    <main class="layout">
+      <section class="hero">
+        <div class="eyebrow">HUMAN-CENTERED AI QUALITY</div>
+        <h1>Make every conversation<br /><em>more accountable.</em></h1>
+        <p>Ten focused tools for reviewing chatbot behavior, designing tests, and turning findings into repeatable checks.</p>
+        <div class="hero-foot"><span>01 / EVALUATE</span><span>02 / REVIEW</span><span>03 / IMPROVE</span></div>
+      </section>
+      <section class="workspace">
+        <aside class="project-panel">
+          <div class="section-head"><div><div class="eyebrow">WORKSPACE</div><h2>Evaluation apps</h2></div><span id="project-count" class="count">10</span></div>
+          <div id="project-list" class="project-list" aria-label="Evaluation applications"></div>
+          <div class="security-note"><span class="shield">◇</span><div><strong>Human judgment stays in control</strong><small>Automated signals support review. They never replace it.</small></div></div>
+        </aside>
+        <section class="work-panel" aria-live="polite">
+          <div class="section-head"><div><div class="eyebrow">TEST WORKBENCH</div><h2 id="selected-title">HumanEval Studio</h2></div><span class="pill">DRAFT</span></div>
+          <p id="selected-description" class="work-description">Review a conversation with a consistent rubric and evidence based feedback.</p>
+          <label for="api-key">Local API key <span>stored only in this browser tab</span></label>
+          <input id="api-key" type="password" autocomplete="off" value="local-dev-key-change-me" />
+          <div class="live-chat">
+            <div class="live-chat-head"><div><div class="eyebrow">LIVE MODEL TEST</div><strong>Test a chatbot directly</strong><small>Uses the configured provider; HumanEval Studio can review the transcript.</small></div><button id="chat-button" type="button">Send ↗</button></div>
+            <textarea id="chat-prompt" rows="2" placeholder="Write a message to the configured chatbot…" aria-label="Message to chatbot"></textarea>
+            <div id="chat-response" class="chat-response" hidden></div>
+          </div>
+          <label for="payload">Evaluation input <span>JSON · sample input is editable</span></label>
+          <div class="editor-wrap"><div class="editor-gutter">JSON<br />···</div><textarea id="payload" spellcheck="false" aria-label="JSON evaluation input"></textarea></div>
+          <div class="actions"><button id="sample-button" class="button-secondary" type="button">Load sample</button><button id="run-button" class="button-primary" type="button"><span>Run evaluation</span><b>↗</b></button></div>
+          <div id="message" class="message" role="status"></div>
+          <div class="result-head"><span>RESULT</span><span id="run-id">READY</span></div>
+          <pre id="result" class="result" aria-label="Evaluation result">Choose an evaluation app, review the sample JSON, and run a local check.</pre>
+          <div class="feedback" id="feedback-panel" hidden>
+            <div class="eyebrow">HUMAN REVIEW</div>
+            <div class="feedback-row"><input id="feedback-label" maxlength="40" placeholder="Label (e.g. needs-revision)" /><input id="feedback-rationale" maxlength="2000" placeholder="Why? Include concrete evidence (min. 8 chars)" /><button id="save-feedback" type="button">Save feedback</button></div>
+          </div>
+          <div class="agent-box"><div><div class="eyebrow">AGENT ASSIST</div><strong>Draft adversarial test prompts</strong><small>Requires a configured model. Drafts need human approval before use.</small></div><button id="agent-button" type="button">Generate drafts ↗</button></div>
+        </section>
+      </section>
+      <footer><span>EvalWorks · Open evaluation toolkit</span><span>Runs store a digest, result, and reviewer feedback. Raw inputs are not persisted.</span></footer>
+    </main>
+    <script src="/app.js" defer></script>
+  </body>
+</html>
