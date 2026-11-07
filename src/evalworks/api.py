@@ -1,3 +1,8 @@
+import hashlib
+import hmac
+import secrets
+
+import pyotp
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
 from sqlalchemy import delete, func, select
 from sqlalchemy.exc import IntegrityError
@@ -13,7 +18,9 @@ from evalworks.auth import (
     require_actor,
     require_roles,
     set_session_cookies,
+    verify_password,
 )
+from evalworks.crypto import decrypt_secret, encrypt_secret
 from evalworks.jobs import encrypt_payload
 from evalworks.llm import LLMUnavailable, chat, propose_probe_cases
 from evalworks.models import EvaluationJob, EvaluationRun, ReviewFeedback, User
@@ -25,6 +32,9 @@ from evalworks.schemas import (
     EvaluationJobInput,
     FeedbackInput,
     LoginInput,
+    MFACodeInput,
+    MFADisableInput,
+    MFASetupInput,
     ProbeExecutionInput,
     ProbePlanInput,
     UserCreateInput,
@@ -37,6 +47,15 @@ auth_router = APIRouter(prefix="/api/v1/auth")
 @auth_router.post("/login")
 def login(request: LoginInput, response: Response, db: Session = Depends(get_db)):
     user = authenticate_user(db, request.email, request.password)
+    if user and user.mfa_enabled:
+        user = db.scalar(select(User).where(User.id == user.id).with_for_update())
+        if (
+            not user
+            or not user.is_active
+            or not request.otp
+            or not _verify_mfa_code(db, user, request.otp)
+        ):
+            user = None
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -46,6 +65,101 @@ def login(request: LoginInput, response: Response, db: Session = Depends(get_db)
     token, csrf = issue_session(user)
     set_session_cookies(response, token, csrf)
     return {"id": user.id, "email": user.email, "role": user.role}
+
+
+def _verify_mfa_code(db: Session, user: User, code: str) -> bool:
+    if not user.mfa_secret_ciphertext:
+        return False
+    try:
+        secret = decrypt_secret(user.mfa_secret_ciphertext)
+    except ValueError:
+        return False
+    if pyotp.TOTP(secret).verify(code, valid_window=1):
+        return True
+    candidate = hashlib.sha256(code.replace("-", "").casefold().encode()).hexdigest()
+    hashes = user.mfa_recovery_hashes or []
+    if not any(hmac.compare_digest(candidate, stored) for stored in hashes):
+        return False
+    user.mfa_recovery_hashes = [
+        stored for stored in hashes if not hmac.compare_digest(candidate, stored)
+    ]
+    db.commit()
+    return True
+
+
+@auth_router.post("/mfa/setup")
+def setup_mfa(
+    request: MFASetupInput,
+    actor: Actor = Depends(require_actor),
+    db: Session = Depends(get_db),
+):
+    user = db.get(User, actor.id)
+    if not user or not verify_password(request.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Password verification failed")
+    if user.mfa_enabled:
+        raise HTTPException(
+            status_code=409, detail="Disable MFA before enrolling a new authenticator"
+        )
+    secret = pyotp.random_base32()
+    user.mfa_secret_ciphertext = encrypt_secret(secret)
+    user.mfa_enabled = False
+    user.mfa_recovery_hashes = []
+    db.commit()
+    return {
+        "status": "pending_confirmation",
+        "account": user.email,
+        "issuer": "EvalWorks",
+        "manual_secret": secret,
+        "instruction": (
+            "Add this secret to a TOTP authenticator, then confirm with its six-digit code."
+        ),
+    }
+
+
+@auth_router.post("/mfa/confirm")
+def confirm_mfa(
+    request: MFACodeInput,
+    actor: Actor = Depends(require_actor),
+    db: Session = Depends(get_db),
+):
+    user = db.get(User, actor.id)
+    if not user or not user.mfa_secret_ciphertext:
+        raise HTTPException(status_code=409, detail="Start MFA setup first")
+    if user.mfa_enabled:
+        raise HTTPException(status_code=409, detail="MFA is already enabled")
+    secret = decrypt_secret(user.mfa_secret_ciphertext)
+    if not pyotp.TOTP(secret).verify(request.code, valid_window=1):
+        raise HTTPException(status_code=400, detail="MFA code is invalid")
+    codes = [secrets.token_hex(16) for _ in range(10)]
+    user.mfa_enabled = True
+    user.mfa_recovery_hashes = [hashlib.sha256(code.encode()).hexdigest() for code in codes]
+    db.commit()
+    return {
+        "status": "enabled",
+        "recovery_codes": codes,
+        "warning": "Each recovery code works once. Store them securely; they are shown only once.",
+    }
+
+
+@auth_router.post("/mfa/disable")
+def disable_mfa(
+    request: MFADisableInput,
+    response: Response,
+    actor: Actor = Depends(require_actor),
+    db: Session = Depends(get_db),
+):
+    user = db.get(User, actor.id)
+    if not user or not verify_password(request.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Password verification failed")
+    if not user.mfa_enabled or not _verify_mfa_code(db, user, request.code):
+        raise HTTPException(status_code=401, detail="MFA verification failed")
+    user.mfa_enabled = False
+    user.mfa_secret_ciphertext = None
+    user.mfa_recovery_hashes = []
+    user.session_version += 1
+    db.commit()
+    clear_session_cookies(response)
+    return {"status": "disabled", "sessions_revoked": True}
 
 
 @auth_router.post("/logout")

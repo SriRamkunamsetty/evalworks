@@ -30,6 +30,13 @@ def test_initial_migration_creates_expected_tables(tmp_path, monkeypatch):
     columns = {column["name"] for column in inspect(engine).get_columns("evaluation_runs")}
     assert "metadata" in columns
     assert {"workspace_id", "created_by"} <= columns
+    user_columns = {column["name"] for column in inspect(engine).get_columns("users")}
+    assert {
+        "session_version",
+        "mfa_enabled",
+        "mfa_secret_ciphertext",
+        "mfa_recovery_hashes",
+    } <= user_columns
     from evalworks.models import EvaluationRun
 
     with Session(engine) as session:

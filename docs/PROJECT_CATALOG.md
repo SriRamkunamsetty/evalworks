@@ -25,10 +25,11 @@ EvalWorks ships ten working evaluation workflows in one modular application. “
 - Durable evaluation jobs encrypt inputs until execution, enforce per-workspace idempotency and queue bounds, use worker leases and retries, and purge terminal job records after the configurable retention window.
 - Worker cleanup also purges run and feedback history on the configured retention schedule (365 days by default).
 - Redis-backed sliding-window login/general rate limits are shared across API replicas; loss of Redis fails requests closed.
+- TOTP MFA has encrypted pending secrets, hashed one-time recovery codes, session revocation when disabled, and host-operated password recovery.
 - Probe execution requires an explicit authorization flag and is limited to five test cases per synchronous request.
 
 ## Production completion still needed
 
-This is a portfolio-grade, security-conscious application baseline, not a claim of production operation at scale. Before public multi-tenant service use, add SSO/MFA and account recovery, worker resource isolation, audit logging/metrics/tracing, tested backup/restore and data-retention controls, deployment-specific secret rotation and network policy, load testing, and independent security review. Model provider calls and each five-case ProbeFleet execution are synchronous; split larger authorized suites across durable jobs.
+This is a portfolio-grade, security-conscious application baseline, not a claim of production operation at scale. Before public multi-tenant service use, add SSO and self-service account recovery, worker resource isolation, audit logging/metrics/tracing, tested backup/restore, deployment-specific secret rotation and network policy, load testing, and independent security review. Model provider calls and each five-case ProbeFleet execution are synchronous; split larger authorized suites across durable jobs.
 
 For GSoC, treat this repository as a proposal portfolio. Choose an accepted mentoring organization in the target year and agree with its mentors on an upstream-sized deliverable; this repository alone is not a GSoC project.

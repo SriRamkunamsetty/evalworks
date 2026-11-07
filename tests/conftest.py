@@ -9,6 +9,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from evalworks import security
 from evalworks.api import get_db
 from evalworks.config import settings
 from evalworks.db import Base
@@ -18,6 +19,7 @@ from evalworks.models import Workspace
 
 @pytest.fixture
 def client():
+    security._windows.clear()
     test_engine = create_engine(
         "sqlite://",
         connect_args={"check_same_thread": False},

@@ -93,6 +93,23 @@ class LoginInput(BaseModel):
 
     email: EmailStr
     password: str = Field(min_length=1, max_length=200)
+    otp: str | None = Field(default=None, pattern="^([0-9]{6}|[a-fA-F0-9]{32})$")
+
+
+class MFASetupInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    password: str = Field(min_length=1, max_length=200)
+
+
+class MFACodeInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    code: str = Field(min_length=6, max_length=32, pattern="^([0-9]{6}|[a-fA-F0-9]{32})$")
+
+
+class MFADisableInput(MFASetupInput):
+    code: str = Field(min_length=6, max_length=32, pattern="^([0-9]{6}|[a-fA-F0-9]{32})$")
 
 
 class UserCreateInput(BaseModel):

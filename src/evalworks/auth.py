@@ -49,6 +49,7 @@ def issue_session(user: User) -> tuple[str, str]:
         {
             "sub": user.id,
             "workspace": user.workspace_id,
+            "ver": user.session_version,
             "iat": now,
             "exp": now + SESSION_TTL,
             "iss": "evalworks",
@@ -94,7 +95,7 @@ def require_actor(request: Request, db: Annotated[Session, Depends(get_db)]) -> 
                 settings.session_secret,
                 algorithms=["HS256"],
                 issuer="evalworks",
-                options={"require": ["sub", "workspace", "exp", "iat", "iss"]},
+                options={"require": ["sub", "workspace", "ver", "exp", "iat", "iss"]},
             )
         except jwt.PyJWTError as exc:
             raise HTTPException(
@@ -103,7 +104,12 @@ def require_actor(request: Request, db: Annotated[Session, Depends(get_db)]) -> 
                 headers={"WWW-Authenticate": "Bearer"},
             ) from exc
         user = db.get(User, claims["sub"])
-        if not user or not user.is_active or user.workspace_id != claims["workspace"]:
+        if (
+            not user
+            or not user.is_active
+            or user.workspace_id != claims["workspace"]
+            or user.session_version != claims["ver"]
+        ):
             raise HTTPException(status_code=401, detail="Account is inactive or unavailable")
         return Actor(user.id, user.workspace_id, user.email, user.role)
 

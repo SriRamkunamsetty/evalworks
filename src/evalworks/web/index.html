@@ -30,7 +30,7 @@
           <input id="api-key" type="password" autocomplete="off" value="local-dev-key-change-me" />
           <div class="auth-controls">
             <label for="login-email">Workspace sign in <span id="auth-status">Not signed in</span></label>
-            <div class="auth-row"><input id="login-email" type="email" autocomplete="username" placeholder="you@example.com" /><input id="login-password" type="password" autocomplete="current-password" placeholder="Password" /><button id="login-button" type="button">Sign in</button><button id="logout-button" type="button" hidden>Sign out</button></div>
+            <div class="auth-row"><input id="login-email" type="email" autocomplete="username" placeholder="you@example.com" /><input id="login-password" type="password" autocomplete="current-password" placeholder="Password" /><input id="login-otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="32" placeholder="Authenticator or recovery code" aria-label="MFA code (optional)" /><button id="login-button" type="button">Sign in</button><button id="logout-button" type="button" hidden>Sign out</button></div>
           </div>
           <div class="live-chat">
             <div class="live-chat-head"><div><div class="eyebrow">LIVE MODEL TEST</div><strong>Test a chatbot directly</strong><small>Uses the configured provider; HumanEval Studio can review the transcript.</small></div><button id="chat-button" type="button">Send ↗</button></div>

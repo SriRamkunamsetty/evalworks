@@ -15,10 +15,13 @@ def create_user(db, *, workspace_id="local", email="reviewer@example.com", role=
     return user
 
 
-def login(client, email):
+def login(client, email, otp=None):
+    credentials = {"email": email, "password": "a-strong-test-password-123"}
+    if otp is not None:
+        credentials["otp"] = otp
     return client.post(
         "/api/v1/auth/login",
-        json={"email": email, "password": "a-strong-test-password-123"},
+        json=credentials,
     )
 
 
@@ -153,3 +156,99 @@ def test_admin_can_provision_workspace_member_but_viewer_cannot(client):
     )
     assert denied.status_code == 403
     assert client.get("/api/v1/users").status_code == 403
+
+
+def test_totp_mfa_recovery_codes_are_single_use_and_can_be_disabled(client):
+    import pyotp
+
+    user = add_user(client, email="mfa@example.com")
+    assert login(client, user.email).status_code == 200
+    csrf = {"X-CSRF-Token": client.cookies.get("ew_csrf")}
+    setup = client.post(
+        "/api/v1/auth/mfa/setup",
+        json={"password": "a-strong-test-password-123"},
+        headers=csrf,
+    )
+    assert setup.status_code == 200
+    secret = setup.json()["manual_secret"]
+
+    confirmed = client.post(
+        "/api/v1/auth/mfa/confirm",
+        json={"code": pyotp.TOTP(secret).now()},
+        headers=csrf,
+    )
+    assert confirmed.status_code == 200
+    recovery_code = confirmed.json()["recovery_codes"][0]
+    assert (
+        client.post(
+            "/api/v1/auth/mfa/setup",
+            json={"password": "a-strong-test-password-123"},
+            headers=csrf,
+        ).status_code
+        == 409
+    )
+    assert (
+        client.post(
+            "/api/v1/auth/mfa/confirm",
+            json={"code": pyotp.TOTP(secret).now()},
+            headers=csrf,
+        ).status_code
+        == 409
+    )
+    assert len(confirmed.json()["recovery_codes"]) == 10
+    assert len(recovery_code) == 32
+
+    assert client.post("/api/v1/auth/logout", headers=csrf).status_code == 200
+    assert login(client, user.email).status_code == 401
+    assert login(client, user.email, recovery_code).status_code == 200
+    csrf = {"X-CSRF-Token": client.cookies.get("ew_csrf")}
+    assert client.post("/api/v1/auth/logout", headers=csrf).status_code == 200
+    assert login(client, user.email, recovery_code).status_code == 401
+
+    assert login(client, user.email, pyotp.TOTP(secret).now()).status_code == 200
+    csrf = {"X-CSRF-Token": client.cookies.get("ew_csrf")}
+    disabled = client.post(
+        "/api/v1/auth/mfa/disable",
+        json={"password": "a-strong-test-password-123", "code": pyotp.TOTP(secret).now()},
+        headers=csrf,
+    )
+    assert disabled.status_code == 200
+    assert disabled.json()["sessions_revoked"] is True
+    assert client.get("/api/v1/auth/me").status_code == 401
+    assert login(client, user.email).status_code == 200
+
+
+def test_operator_password_recovery_revokes_sessions_and_can_clear_lost_mfa(client, monkeypatch):
+    import pyotp
+
+    from evalworks import cli
+    from evalworks.auth import verify_password
+    from evalworks.crypto import encrypt_secret
+
+    user = add_user(client, email="recovery@example.com", role="admin")
+    secret = pyotp.random_base32()
+    with client.app.state.test_session() as db:
+        db_user = db.get(User, user.id)
+        db_user.mfa_enabled = True
+        db_user.mfa_secret_ciphertext = encrypt_secret(secret)
+        version = db_user.session_version
+        db.commit()
+
+    assert login(client, user.email, pyotp.TOTP(secret).now()).status_code == 200
+
+    passwords = iter(["recovered-account-password-123", "recovered-account-password-123"])
+    monkeypatch.setattr(cli, "getpass", lambda _prompt: next(passwords))
+    cli.reset_password(user.email, disable_mfa=True, session_factory=client.app.state.test_session)
+    assert client.get("/api/v1/auth/me").status_code == 401
+    with client.app.state.test_session() as db:
+        updated = db.get(User, user.id)
+        assert updated.session_version == version + 1
+        assert updated.mfa_enabled is False
+        assert verify_password("recovered-account-password-123", updated.password_hash)
+    assert (
+        client.post(
+            "/api/v1/auth/login",
+            json={"email": user.email, "password": "recovered-account-password-123"},
+        ).status_code
+        == 200
+    )

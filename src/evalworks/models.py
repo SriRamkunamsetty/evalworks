@@ -34,6 +34,10 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255))
     role: Mapped[str] = mapped_column(String(16), default="reviewer")
     is_active: Mapped[bool] = mapped_column(default=True)
+    session_version: Mapped[int] = mapped_column(default=0)
+    mfa_enabled: Mapped[bool] = mapped_column(default=False)
+    mfa_secret_ciphertext: Mapped[str | None] = mapped_column(Text)
+    mfa_recovery_hashes: Mapped[list[str] | None] = mapped_column(JSON, default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
