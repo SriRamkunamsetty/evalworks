@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     cookie_secure: bool = False
     redis_url: str = ""
     max_request_bytes: int = 65_536
+    job_retention_days: int = 30
+    run_retention_days: int = 365
     allowed_origins: str = "http://localhost:8000"
     llm_base_url: str = ""
     llm_api_key: str = ""
@@ -29,6 +31,10 @@ settings = Settings()
 
 
 def validate_production_settings() -> None:
+    if not 1 <= settings.job_retention_days <= 3650:
+        raise RuntimeError("JOB_RETENTION_DAYS must be between 1 and 3650")
+    if not 1 <= settings.run_retention_days <= 3650:
+        raise RuntimeError("RUN_RETENTION_DAYS must be between 1 and 3650")
     if settings.app_env.lower() == "production":
         if len(settings.api_key) < 32 or settings.api_key == "local-dev-key-change-me":
             raise RuntimeError("Production requires a unique API_KEY of at least 32 characters")

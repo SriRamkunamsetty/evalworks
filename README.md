@@ -27,7 +27,7 @@ python -m evalworks.cli create-admin --workspace "My review team" --email you@ex
 
 The CLI prompts for a password and stores only an Argon2 hash. Sign in from the workspace UI. New deployments have no default user or public sign-up route. Keep the data-encryption key stable while jobs are queued; rotate it only after draining the queue.
 
-When running the API directly instead of Compose, start a second process with `python -m evalworks.worker` to process durable evaluation jobs. `POST /api/v1/jobs` requires an `Idempotency-Key` header and returns a job ID; read progress at `GET /api/v1/jobs/{job_id}`. Job inputs are encrypted while queued and erased after completion; only a redacted evaluation result is added to run history.
+When running the API directly instead of Compose, start a second process with `python -m evalworks.worker` to process durable evaluation jobs. `POST /api/v1/jobs` requires an `Idempotency-Key` header and returns a job ID; read progress at `GET /api/v1/jobs/{job_id}`. Job inputs are encrypted while queued and erased after completion; only a redacted evaluation result is added to run history. The worker purges completed job records after `JOB_RETENTION_DAYS` and run/feedback records after `RUN_RETENTION_DAYS` (defaults: 30 and 365 days).
 
 ## Run with Docker
 

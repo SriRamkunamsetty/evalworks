@@ -10,7 +10,7 @@ from sqlalchemy import delete, select, update
 
 from evalworks.config import settings
 from evalworks.db import SessionLocal
-from evalworks.models import EvaluationJob, EvaluationRun
+from evalworks.models import EvaluationJob, EvaluationRun, ReviewFeedback
 from evalworks.privacy import digest_payload, redact_result
 from evalworks.projects import PROJECT_BY_SLUG
 
@@ -20,7 +20,6 @@ _fernet_key = base64.urlsafe_b64encode(
 )
 _fernet = Fernet(_fernet_key)
 JOB_LEASE = timedelta(minutes=5)
-JOB_RETENTION = timedelta(days=30)
 
 
 class InvalidJobPayload(ValueError):
@@ -145,7 +144,7 @@ def process_job(job_id: str, session_factory=SessionLocal) -> None:
 
 
 def purge_expired_jobs(session_factory=SessionLocal) -> int:
-    cutoff = datetime.now(UTC) - JOB_RETENTION
+    cutoff = datetime.now(UTC) - timedelta(days=settings.job_retention_days)
     with session_factory.begin() as db:
         result = db.execute(
             delete(EvaluationJob).where(
@@ -156,11 +155,24 @@ def purge_expired_jobs(session_factory=SessionLocal) -> int:
         return result.rowcount or 0
 
 
+def purge_expired_runs(session_factory=SessionLocal) -> int:
+    cutoff = datetime.now(UTC) - timedelta(days=settings.run_retention_days)
+    with session_factory.begin() as db:
+        expired_runs = select(EvaluationRun.id).where(EvaluationRun.created_at < cutoff)
+        db.execute(delete(ReviewFeedback).where(ReviewFeedback.run_id.in_(expired_runs)))
+        db.execute(
+            update(EvaluationJob).where(EvaluationJob.run_id.in_(expired_runs)).values(run_id=None)
+        )
+        result = db.execute(delete(EvaluationRun).where(EvaluationRun.created_at < cutoff))
+        return result.rowcount or 0
+
+
 def worker_loop(poll_interval: float = 1.0) -> None:
     last_purge = 0.0
     while True:
         if time.monotonic() - last_purge > 3600:
             purge_expired_jobs()
+            purge_expired_runs()
             last_purge = time.monotonic()
         job_id = claim_one_job()
         if job_id is None:

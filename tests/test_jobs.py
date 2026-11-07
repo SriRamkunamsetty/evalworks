@@ -1,8 +1,14 @@
 from datetime import UTC, datetime, timedelta
 
 from evalworks.config import settings
-from evalworks.jobs import claim_one_job, decrypt_payload, process_job, purge_expired_jobs
-from evalworks.models import EvaluationJob
+from evalworks.jobs import (
+    claim_one_job,
+    decrypt_payload,
+    process_job,
+    purge_expired_jobs,
+    purge_expired_runs,
+)
+from evalworks.models import EvaluationJob, EvaluationRun, ReviewFeedback
 
 TEST_HEADERS = {"X-API-Key": settings.api_key}
 
@@ -93,3 +99,47 @@ def test_failed_evaluation_is_reported_without_exposing_input(client):
     assert status_response.json()["status"] == "failed"
     assert status_response.json()["error_code"] == "invalid_payload"
     assert "Missing prompts" not in status_response.text
+
+
+def test_run_retention_removes_feedback_and_detaches_job(client):
+    old_date = datetime.now(UTC) - timedelta(days=400)
+    with client.app.state.test_session() as db:
+        run = EvaluationRun(
+            project="judgebench",
+            workspace_id="local",
+            input_digest="e" * 64,
+            result={"human_review_required": True},
+            run_metadata={},
+            created_at=old_date,
+        )
+        db.add(run)
+        db.flush()
+        feedback = ReviewFeedback(
+            run_id=run.id,
+            reviewer_id="reviewer",
+            workspace_id="local",
+            label="reviewed",
+            rationale="Checked against the rubric.",
+        )
+        job = EvaluationJob(
+            workspace_id="local",
+            project="judgebench",
+            idempotency_key="retention-job-key",
+            input_digest="e" * 64,
+            payload_ciphertext="",
+            metadata_json={},
+            status="succeeded",
+            attempts=1,
+            max_attempts=3,
+            run_id=run.id,
+        )
+        db.add_all([feedback, job])
+        db.commit()
+        run_id, job_id, feedback_id = run.id, job.id, feedback.id
+
+    assert purge_expired_runs(client.app.state.test_session) == 1
+    with client.app.state.test_session() as db:
+        assert db.get(EvaluationRun, run_id) is None
+        assert db.get(ReviewFeedback, feedback_id) is None
+        assert db.get(EvaluationJob, job_id).run_id is None
+    assert client.get(f"/api/v1/runs/{run_id}", headers=TEST_HEADERS).status_code == 404

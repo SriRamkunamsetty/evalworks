@@ -80,3 +80,13 @@ def test_production_model_endpoint_requires_allowlisted_public_hostname(monkeypa
     )
     with pytest.raises(RuntimeError, match="public addresses"):
         validate_production_settings()
+
+
+def test_retention_configuration_rejects_zero_days(monkeypatch):
+    monkeypatch.setattr(settings, "job_retention_days", 0)
+    with pytest.raises(RuntimeError, match="JOB_RETENTION_DAYS"):
+        validate_production_settings()
+    monkeypatch.setattr(settings, "job_retention_days", 30)
+    monkeypatch.setattr(settings, "run_retention_days", 0)
+    with pytest.raises(RuntimeError, match="RUN_RETENTION_DAYS"):
+        validate_production_settings()

@@ -22,7 +22,8 @@ EvalWorks ships ten working evaluation workflows in one modular application. “
 - PostgreSQL-capable schema and Alembic migrations, including workspace scoping, authenticated user sessions, and admin, reviewer, and viewer roles.
 - Keyed input fingerprints and recursively redacted persisted evaluator results.
 - CI lint, compile, browser syntax, dependency audit, and regression suite; Docker image build with SBOM/provenance publishing; hardened Compose and separate Kubernetes API/worker templates.
-- Durable evaluation jobs encrypt inputs until execution, enforce per-workspace idempotency and queue bounds, use worker leases and retries, and purge terminal job metadata after 30 days.
+- Durable evaluation jobs encrypt inputs until execution, enforce per-workspace idempotency and queue bounds, use worker leases and retries, and purge terminal job records after the configurable retention window.
+- Worker cleanup also purges run and feedback history on the configured retention schedule (365 days by default).
 - Redis-backed sliding-window login/general rate limits are shared across API replicas; loss of Redis fails requests closed.
 - Probe execution requires an explicit authorization flag and is limited to five test cases per synchronous request.
 
