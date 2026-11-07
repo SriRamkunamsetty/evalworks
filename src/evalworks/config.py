@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     app_name: str = "EvalWorks"
     database_url: str = "sqlite:///./.data/evalworks.db"
     api_key: str = "local-dev-key-change-me"
+    session_secret: str = "development-secret-change-before-deploying-32-chars-minimum"
+    cookie_secure: bool = False
     max_request_bytes: int = 65_536
     allowed_origins: str = "http://localhost:8000"
     llm_base_url: str = ""
@@ -24,6 +26,16 @@ def validate_production_settings() -> None:
     if settings.app_env.lower() == "production":
         if len(settings.api_key) < 32 or settings.api_key == "local-dev-key-change-me":
             raise RuntimeError("Production requires a unique API_KEY of at least 32 characters")
+        if (
+            len(settings.session_secret) < 32
+            or settings.session_secret.startswith("development-")
+            or settings.session_secret == settings.api_key
+        ):
+            raise RuntimeError(
+                "Production requires a unique SESSION_SECRET of at least 32 characters"
+            )
+        if not settings.cookie_secure:
+            raise RuntimeError("Production requires COOKIE_SECURE=true")
         if settings.database_url.startswith("sqlite"):
             raise RuntimeError(
                 "Production requires a managed database; SQLite is for local use only"

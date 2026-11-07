@@ -17,7 +17,15 @@ python -m alembic upgrade head
 uvicorn evalworks.main:app --app-dir src --reload
 ```
 
-Open http://localhost:8000. The local demo key is `local-dev-key-change-me`; change it in `.env` before using the app outside your own machine. Interactive API docs are at `/docs`.
+Open http://localhost:8000. For the local demo, the development API key is `local-dev-key-change-me`; change it in `.env` before using the app outside your own machine. Interactive API docs are at `/docs`.
+
+To create the first authenticated workspace administrator, apply migrations and run:
+
+```powershell
+python -m evalworks.cli create-admin --workspace "My review team" --email you@example.com
+```
+
+The CLI prompts for a password and stores only an Argon2 hash. Sign in from the workspace UI. New deployments have no default user or public sign-up route.
 
 ## Run with Docker
 
@@ -46,7 +54,7 @@ The container runs as a non-root user, drops Linux capabilities, uses a read-onl
 
 See [the architecture](docs/ARCHITECTURE.md) and [project catalog](docs/PROJECT_CATALOG.md) for trust boundaries, current scope, and the recommended build sequence.
 
-All API requests are versioned under `/api/v1`. Mutating and data-reading endpoints require `X-API-Key`. Evaluation inputs are returned to the reviewer but are not stored. The database stores a keyed HMAC fingerprint, redacted result summary, and allowlisted reproducibility metadata (model/provider and prompt/dataset/evaluator versions); reviewer feedback is saved with a run ID, label, rationale, and reviewer ID. Do not put personal data in feedback rationale.
+All API requests are versioned under `/api/v1`. Development can use `X-API-Key`; production uses authenticated user sessions. Evaluation inputs are returned to the reviewer but are not stored. The database stores a keyed HMAC fingerprint, redacted result summary, allowlisted reproducibility metadata, and reviewer feedback. Runs and feedback are scoped to a workspace. Roles are `admin`, `reviewer`, and read-only `viewer`; only admins delete runs. Browser sessions use HttpOnly cookies and CSRF protection.
 
 ## Optional LLM agent
 
@@ -66,9 +74,8 @@ Publishing a version tag (`vX.Y.Z`) builds and publishes a container image to Gi
 ## Security and deployment notes
 
 - Never commit `.env`, API keys, private conversations, or personal data.
-- The browser demo sends the configured API key to this service. Run it only on a trusted local/private network; do not expose a shared API key to the public internet. A public multi-user deployment still needs user authentication, role-based authorization, and a secret-management plan.
-- Production mode rejects the development key and SQLite. Set `APP_ENV=production`, a random `API_KEY` of at least 32 characters, and a managed database URL.
-- The in-process rate limit is a basic single-instance protection. Use gateway-level rate limiting and distributed storage for multiple replicas.
+- The development API key is supported only outside production. Production mode rejects SQLite, the development API key, weak session secrets, and insecure cookies. Set `APP_ENV=production`, a random `API_KEY`, a random `SESSION_SECRET` (at least 32 characters), `COOKIE_SECURE=true`, and a managed database URL.
+- Login and general request limits are in-process and per instance. Put a trusted gateway/WAF with distributed rate limiting in front of a multi-replica deployment.
 - Add organization-specific retention, deletion, and consent controls before using real user conversations.
 - Do not treat heuristic measurements or LLM judgments as ground truth. Record reviewer rationale and uncertainty.
 
@@ -78,4 +85,4 @@ The architecture is split into independent evaluators and a small API orchestrat
 
 ## Current limitations
 
-This is an initial vertical slice: the applications have working structured evaluation flows, persistence, a small reviewer UI, CI, container publishing, database migrations, and security defaults for local/private use. It is not yet a public multi-tenant production service. Full user authentication/authorization, distributed task queues, cloud-specific managed-service configuration, and external evaluation integrations are planned follow-up work.
+The repository has ten working structured evaluation flows, workspace-scoped storage, session authentication and roles, a reviewer UI, CI, a container build, and database migrations. It is a production-oriented reference implementation, not a hosted service or a claim of independently certified security. Durable background queues, cloud-specific managed-service modules, SSO/MFA, account recovery, organization-specific retention/consent workflows, and external evaluation integrations remain follow-up work before exposing it to sensitive real-world workloads.

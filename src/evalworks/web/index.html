@@ -26,8 +26,12 @@
         <section class="work-panel" aria-live="polite">
           <div class="section-head"><div><div class="eyebrow">TEST WORKBENCH</div><h2 id="selected-title">HumanEval Studio</h2></div><span class="pill">DRAFT</span></div>
           <p id="selected-description" class="work-description">Review a conversation with a consistent rubric and evidence based feedback.</p>
-          <label for="api-key">Local API key <span>stored only in this browser tab</span></label>
+          <label for="api-key">Development API key <span>used only outside production</span></label>
           <input id="api-key" type="password" autocomplete="off" value="local-dev-key-change-me" />
+          <div class="auth-controls">
+            <label for="login-email">Workspace sign in <span id="auth-status">Not signed in</span></label>
+            <div class="auth-row"><input id="login-email" type="email" autocomplete="username" placeholder="you@example.com" /><input id="login-password" type="password" autocomplete="current-password" placeholder="Password" /><button id="login-button" type="button">Sign in</button><button id="logout-button" type="button" hidden>Sign out</button></div>
+          </div>
           <div class="live-chat">
             <div class="live-chat-head"><div><div class="eyebrow">LIVE MODEL TEST</div><strong>Test a chatbot directly</strong><small>Uses the configured provider; HumanEval Studio can review the transcript.</small></div><button id="chat-button" type="button">Send ↗</button></div>
             <textarea id="chat-prompt" rows="2" placeholder="Write a message to the configured chatbot…" aria-label="Message to chatbot"></textarea>

@@ -13,6 +13,7 @@ from evalworks.api import get_db
 from evalworks.config import settings
 from evalworks.db import Base
 from evalworks.main import app
+from evalworks.models import Workspace
 
 
 @pytest.fixture
@@ -23,7 +24,11 @@ def client():
         poolclass=StaticPool,
     )
     test_session = sessionmaker(bind=test_engine, autoflush=False, expire_on_commit=False)
+    app.state.test_session = test_session
     Base.metadata.create_all(test_engine)
+    with test_session() as db:
+        db.add(Workspace(id="local", name="Local development"))
+        db.commit()
 
     def override_get_db():
         db = test_session()
@@ -36,6 +41,7 @@ def client():
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
+    del app.state.test_session
     Base.metadata.drop_all(test_engine)
     test_engine.dispose()
 

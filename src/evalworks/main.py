@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
-from evalworks.api import router
+from evalworks.api import auth_router, router
 from evalworks.config import settings, validate_production_settings
 from evalworks.db import engine
 from evalworks.security import RequestLimitsMiddleware
@@ -27,12 +27,13 @@ app.add_middleware(
     allow_origins=[
         origin.strip() for origin in settings.allowed_origins.split(",") if origin.strip()
     ],
-    allow_credentials=False,
+    allow_credentials=True,
     allow_methods=["GET", "POST", "DELETE"],
-    allow_headers=["Content-Type", "X-API-Key"],
+    allow_headers=["Content-Type", "X-API-Key", "X-CSRF-Token"],
 )
 app.add_middleware(RequestLimitsMiddleware)
 app.include_router(router)
+app.include_router(auth_router)
 
 
 @app.get("/health", include_in_schema=False)

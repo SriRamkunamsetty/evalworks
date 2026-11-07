@@ -1,6 +1,6 @@
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class EvaluationInput(BaseModel):
@@ -70,3 +70,18 @@ class ProbePlanInput(BaseModel):
 
     objective: str = Field(min_length=1, max_length=1000)
     count: int = Field(default=5, ge=1, le=10)
+
+
+class LoginInput(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    email: EmailStr
+    password: str = Field(min_length=1, max_length=200)
+
+
+class UserCreateInput(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    email: EmailStr
+    password: str = Field(min_length=14, max_length=200)
+    role: str = Field(default="reviewer", pattern="^(admin|reviewer|viewer)$")
