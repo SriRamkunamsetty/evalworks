@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
@@ -70,6 +70,22 @@ class ProbePlanInput(BaseModel):
 
     objective: str = Field(min_length=1, max_length=1000)
     count: int = Field(default=5, ge=1, le=10)
+
+
+class ProbeCaseInput(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    case_id: str = Field(min_length=1, max_length=80)
+    prompt: str = Field(min_length=1, max_length=4000)
+    risk_hypothesis: str = Field(min_length=1, max_length=500)
+    expected_behavior: str = Field(min_length=1, max_length=1000)
+
+
+class ProbeExecutionInput(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    authorized_to_test: Literal[True]
+    cases: list[ProbeCaseInput] = Field(min_length=1, max_length=5)
 
 
 class LoginInput(BaseModel):

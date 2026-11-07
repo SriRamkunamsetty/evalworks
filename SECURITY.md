@@ -10,4 +10,4 @@ Do not post secrets, private transcripts, or exploitable details in a public iss
 
 ## Scope and current limitations
 
-The current browser UI uses a shared API key and is intended only for a trusted local or private network. Do not expose it to the public internet. Public multi-user operation requires user authentication, role-based access, distributed rate limiting, managed secret storage, and deployment-specific review.
+The bundled development API key is supported only outside production. Production uses workspace-scoped authenticated sessions with CSRF protection. Public multi-user operation also needs distributed rate limiting, managed secret storage, audit/observability, and deployment-specific review. Configure separate API, session, and data HMAC secrets. See `docs/ARCHITECTURE.md` for scaling limits.

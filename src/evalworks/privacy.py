@@ -15,6 +15,7 @@ _SENSITIVE_FIELDS = {
     "objective",
     "observation",
     "prompt",
+    "risk_hypothesis",
     "response",
     "sources",
     "test_prompt",
@@ -24,7 +25,8 @@ _SENSITIVE_FIELDS = {
 def digest_payload(payload: dict[str, Any]) -> str:
     """Create a keyed fingerprint so input text is not recoverable with an offline dictionary."""
     encoded = json.dumps(payload, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
-    return hmac.new(settings.api_key.encode(), encoded.encode("utf-8"), hashlib.sha256).hexdigest()
+    key = settings.data_hmac_key or settings.api_key
+    return hmac.new(key.encode(), encoded.encode("utf-8"), hashlib.sha256).hexdigest()
 
 
 def redact_result(value: Any) -> Any:

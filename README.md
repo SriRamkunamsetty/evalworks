@@ -58,7 +58,7 @@ All API requests are versioned under `/api/v1`. Development can use `X-API-Key`;
 
 ## Optional LLM agent
 
-Set `LLM_BASE_URL`, `LLM_API_KEY`, and `LLM_MODEL` to an OpenAI-compatible chat-completions endpoint. Then call `POST /api/v1/agents/probe-plan`. The agent returns draft scenarios only; it does not run them against a target or silently add them to a benchmark.
+Set `LLM_BASE_URL`, `LLM_API_KEY`, and `LLM_MODEL` to an OpenAI-compatible chat-completions endpoint. Then call `POST /api/v1/agents/probe-plan` for drafts. Authorized reviewers can run up to five approved cases per request with `POST /api/v1/projects/probefleet/execute`; the server uses only the configured provider, never a caller-supplied target URL, and persists redacted run results for human review.
 
 ## Test and quality checks
 
@@ -67,14 +67,14 @@ python -m ruff check .
 python -m pytest -q
 ```
 
-GitHub Actions runs lint, tests, and a Docker image build on pushes and pull requests. Tests use an isolated in-memory database and do not call external model APIs.
+GitHub Actions runs lint, tests, dependency auditing, compilation, and a Docker image build on pushes and pull requests. Tests use an isolated in-memory database and do not call external model APIs.
 
-Publishing a version tag (`vX.Y.Z`) builds and publishes a container image to GitHub Container Registry. A private Kubernetes deployment template is in `deploy/kubernetes`; replace the sample image name and create the referenced secret with a managed PostgreSQL URL (`postgresql+psycopg://…`) and strong API key before applying it. Run `python -m alembic upgrade head` as a release step before deploying a new version.
+Publishing a version tag (`vX.Y.Z`) builds and publishes an SBOM- and provenance-enabled container image to GitHub Container Registry. A Kubernetes deployment template is in `deploy/kubernetes`; replace the sample image name and create the referenced secrets with a managed PostgreSQL URL, API key, session secret, and separate data HMAC key. Run `python -m alembic upgrade head` as a release step before deploying a new version.
 
 ## Security and deployment notes
 
 - Never commit `.env`, API keys, private conversations, or personal data.
-- The development API key is supported only outside production. Production mode rejects SQLite, the development API key, weak session secrets, and insecure cookies. Set `APP_ENV=production`, a random `API_KEY`, a random `SESSION_SECRET` (at least 32 characters), `COOKIE_SECURE=true`, and a managed database URL.
+- The development API key is supported only outside production. Production mode rejects SQLite, the development API key, weak session secrets, and insecure cookies. Set `APP_ENV=production`, distinct random `API_KEY`, `SESSION_SECRET`, and `DATA_HMAC_KEY` values (at least 32 characters), `COOKIE_SECURE=true`, and a managed database URL. For model calls, use HTTPS and configure the provider hostname in `LLM_ALLOWED_HOSTS`.
 - Login and general request limits are in-process and per instance. Put a trusted gateway/WAF with distributed rate limiting in front of a multi-replica deployment.
 - Add organization-specific retention, deletion, and consent controls before using real user conversations.
 - Do not treat heuristic measurements or LLM judgments as ground truth. Record reviewer rationale and uncertainty.

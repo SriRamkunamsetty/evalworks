@@ -1,3 +1,5 @@
+import ipaddress
+import socket
 from urllib.parse import urlparse
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -10,6 +12,7 @@ class Settings(BaseSettings):
     app_name: str = "EvalWorks"
     database_url: str = "sqlite:///./.data/evalworks.db"
     api_key: str = "local-dev-key-change-me"
+    data_hmac_key: str = ""
     session_secret: str = "development-secret-change-before-deploying-32-chars-minimum"
     cookie_secure: bool = False
     max_request_bytes: int = 65_536
@@ -17,6 +20,7 @@ class Settings(BaseSettings):
     llm_base_url: str = ""
     llm_api_key: str = ""
     llm_model: str = ""
+    llm_allowed_hosts: str = ""
 
 
 settings = Settings()
@@ -36,11 +40,36 @@ def validate_production_settings() -> None:
             )
         if not settings.cookie_secure:
             raise RuntimeError("Production requires COOKIE_SECURE=true")
+        if len(settings.data_hmac_key) < 32 or settings.data_hmac_key in {
+            settings.api_key,
+            settings.session_secret,
+        }:
+            raise RuntimeError(
+                "Production requires a separate DATA_HMAC_KEY of at least 32 characters"
+            )
         if settings.database_url.startswith("sqlite"):
             raise RuntimeError(
                 "Production requires a managed database; SQLite is for local use only"
             )
         if settings.llm_base_url:
             parsed = urlparse(settings.llm_base_url)
-            if parsed.scheme != "https" and parsed.hostname not in {"localhost", "127.0.0.1"}:
+            if parsed.scheme != "https" or not parsed.hostname:
                 raise RuntimeError("Production LLM_BASE_URL must use HTTPS")
+            allowed_hosts = {
+                host.strip().lower()
+                for host in settings.llm_allowed_hosts.split(",")
+                if host.strip()
+            }
+            hostname = parsed.hostname.lower()
+            if hostname not in allowed_hosts:
+                raise RuntimeError("Production LLM endpoint hostname must be in LLM_ALLOWED_HOSTS")
+            try:
+                addresses = {
+                    entry[4][0] for entry in socket.getaddrinfo(hostname, parsed.port or 443)
+                }
+                if not addresses or any(
+                    not ipaddress.ip_address(address).is_global for address in addresses
+                ):
+                    raise RuntimeError("Production LLM endpoint must resolve to public addresses")
+            except (OSError, ValueError):
+                raise RuntimeError("Production LLM endpoint could not be safely resolved") from None

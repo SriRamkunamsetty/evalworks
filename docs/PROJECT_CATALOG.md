@@ -1,23 +1,31 @@
-# Project catalog and build sequence
+# Project catalog and completion status
 
-The ten cards are independent evaluation workflows inside one repository. The current code is an initial vertical slice for each, not ten fully independent SaaS products. Build each workflow deeper after validating it with users and an upstream open-source community.
+EvalWorks ships ten working evaluation workflows in one modular application. “Complete” here means each workflow has a validated API path, persisted run record, redacted storage, human-review signal, and regression coverage. It does not mean ten independently deployable SaaS products or a fully operated public service.
 
-| App | Current vertical slice | Next high-value increment |
-|---|---|---|
-| HumanEval Studio | Conversation transcript, rubric dimensions, evidence and feedback fields | Persistent annotation queues, multiple reviewers, adjudication, rubric versioning |
-| ProbeFleet | Objective plus prompt scenarios with approval status | Model adapter runner, safe concurrency, replay, scenario tagging and result comparison |
-| JudgeBench | Human/judge score gap and normalized agreement | Multi-rater agreement statistics, bias slices, confidence intervals, calibration datasets |
-| Conversation Memory Bench | Literal recall and unwanted-recall checks | Multi-turn fixtures, paraphrase-aware evaluation, explicit correction and consent cases |
-| EvidenceCheck | Claim/source review fields and reviewer verdicts | Source snapshots, provenance, citation validation and reviewer workflow |
-| IndicEval | Language/context rubric and script-character signal | Human-reviewed language suites, code-switch dimensions, dataset governance and language slices |
-| Safety Scenario Lab | Prompt-injection pattern triage and review dimensions | Risk taxonomy, controlled test harness, finding deduplication and red-team reporting |
-| Accessibility Reviewer | Sentence-length signals and human review dimensions | Screen-reader testing, plain-language rubric, user research and accessible UI checks |
-| Multimodal Grounding QA | Modalities and expected-observation checklist | Safe media upload, vision/audio adapter, input evidence anchoring and retention controls |
-| EvalSRE | Incident report into a regression-case draft | Approval state machine, benchmark promotion, regression runner and release comparison |
+| Project | Shipped workflow | Current status | Further work for full product maturity |
+|---|---|---|---|
+| HumanEval Studio | Transcript validation, configurable rubric dimensions, feedback and persisted review runs | Working | Reviewer queues, rubric version history, adjudication, accessible annotation UI |
+| ProbeFleet | Scenario drafting, explicit authorization, capped configured-provider execution, safety triage and redacted run records | Working | Durable asynchronous jobs, replay, model matrix, cancel/retry, richer threat taxonomy |
+| JudgeBench | Human/judge scalar comparison and multi-rater error, agreement and correlation signals | Working | Confidence intervals, ordinal agreement statistics, calibration datasets and slices |
+| Conversation Memory Bench | Normalized literal recall, aliases, expected recall and unwanted-recall checks | Working | Multi-turn state fixtures, consent/correction suite and paraphrase-aware semantic evaluation |
+| EvidenceCheck | Claim/source checklist, reviewer verdicts, bounded citation metadata and HTTPS-only citation URLs | Working | Source snapshots, provenance and human-verified entailment workflow |
+| IndicEval | Unicode script coverage and text-quality warning signals for 13 language labels | Working | Native-speaker datasets, language-specific benchmarks and community governance |
+| Safety Scenario Lab | Bounded injection/disclosure patterns and structured human safety review | Working | Curated threat suite, deduplication, calibrated severity and external benchmark adapters |
+| Accessibility Reviewer | Reading-level thresholds, sentence/word signals and review checklist | Working | Screen-reader and assistive-technology workflows, usability research and WCAG review |
+| Multimodal Grounding QA | Modality checklist with expected observations and evidence identifiers | Working | Secure media ingestion, provider adapters, timestamped evidence and retention controls |
+| EvalSRE | Incident-to-regression draft with stable fingerprint and approval requirement | Working | Approved-case promotion state machine, scheduled regression runs and release comparisons |
 
-## Recommended sequence
+## Shared platform shipped
 
-1. Deepen HumanEval Studio, ProbeFleet, and JudgeBench first. These directly demonstrate chatbot testing and evaluation judgment.
-2. Ship provider execution with timeouts and model comparison. Add it behind adapters so tests remain deterministic and credential-free.
-3. Improve the annotations and data model, then publish a reproducible public sample benchmark with documented consent and limitations.
-4. Contribute a small compatibility feature or bug fix upstream. Only propose a GSoC-sized change after an accepted mentoring organization confirms the need and scope.
+- Versioned FastAPI routes and a small browser workbench.
+- Provider adapter with bounded response reads and explicit configuration; no request-supplied target URL.
+- PostgreSQL-capable schema and Alembic migrations, including workspace scoping, authenticated user sessions, and admin, reviewer, and viewer roles.
+- Keyed input fingerprints and recursively redacted persisted evaluator results.
+- CI lint and regression suite, Docker image build, tagged GHCR publishing, Compose hardening, and a Kubernetes deployment template.
+- Probe execution requires an explicit authorization flag and is limited to five test cases per synchronous request.
+
+## Production completion still needed
+
+This is a portfolio-grade, security-conscious application baseline, not a claim of production operation at scale. Before public multi-tenant service use, add SSO/MFA and account recovery, distributed rate limits, durable job queue and worker isolation, audit logging/metrics/tracing, tested backup/restore and retention policies, deployment-specific secrets and network policy, load testing, and independent security review. Current model calls are synchronous and single-process rate limits do not coordinate across replicas.
+
+For GSoC, treat this repository as a proposal portfolio. Choose an accepted mentoring organization in the target year and agree with its mentors on an upstream-sized deliverable; this repository alone is not a GSoC project.

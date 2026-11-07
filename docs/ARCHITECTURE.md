@@ -25,7 +25,7 @@ flowchart LR
 5. The API returns the working result to the reviewer. Persistence records a keyed fingerprint and recursively redacts prompt, answer, claim, and evidence fields.
 6. Reviewer feedback attaches to a run. A run and its feedback can be deleted together.
 
-The optional model adapter only uses the configured server-side endpoint. The probe planner returns drafts and requires human review; it does not execute prompts against targets. The chat endpoint does not persist chat content.
+The optional model adapter only uses the configured server-side endpoint. The probe planner returns drafts; a separate execution route requires an explicit authorization assertion, caps requests at five cases, and cannot accept a target URL. The chat endpoint does not persist chat content.
 
 ## Trust boundaries
 

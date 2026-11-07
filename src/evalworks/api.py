@@ -23,6 +23,7 @@ from evalworks.schemas import (
     EvaluationInput,
     FeedbackInput,
     LoginInput,
+    ProbeExecutionInput,
     ProbePlanInput,
     UserCreateInput,
 )
@@ -257,6 +258,64 @@ def draft_probe_plan(
         "requires_human_approval": True,
         "cases": cases,
         "message": "Review these drafts before adding them to a test set or running them.",
+    }
+
+
+@router.post("/projects/probefleet/execute", status_code=status.HTTP_201_CREATED)
+def execute_probefleet(
+    request: ProbeExecutionInput,
+    actor: Actor = Depends(require_roles("admin", "reviewer")),
+    db: Session = Depends(get_db),
+):
+    """Run a small, explicitly authorized suite against the server-configured model."""
+    from evalworks.evaluators.safety import evaluate as evaluate_safety
+
+    cases = []
+    try:
+        for case in request.cases:
+            model_result = chat([{"role": "user", "content": case.prompt}])
+            safe_response = model_result["content"][:8000]
+            cases.append(
+                {
+                    "case_id": case.case_id,
+                    "risk_hypothesis": case.risk_hypothesis,
+                    "expected_behavior": case.expected_behavior,
+                    "response": safe_response,
+                    "model": model_result["model"],
+                    "latency_ms": model_result["latency_ms"],
+                    "triage": evaluate_safety({"prompt": case.prompt, "response": safe_response}),
+                    "status": "requires-human-review",
+                }
+            )
+    except LLMUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    result = {
+        "status": "completed",
+        "case_count": len(cases),
+        "cases": cases,
+        "human_review_required": True,
+        "notes": [
+            "Only the configured provider was used; no caller-supplied target URL is accepted.",
+            "Review each response and triage signal before classifying a finding.",
+        ],
+    }
+    run = EvaluationRun(
+        project="probefleet",
+        workspace_id=actor.workspace_id,
+        created_by=None if actor.id == "local" else actor.id,
+        input_digest=digest_payload({"cases": [case.model_dump() for case in request.cases]}),
+        result=redact_result(result),
+        run_metadata={"provider": "configured-openai-compatible", "evaluator_version": "1.0.0"},
+    )
+    db.add(run)
+    db.commit()
+    db.refresh(run)
+    return {
+        "id": run.id,
+        "project": run.project,
+        "input_digest": run.input_digest,
+        "result": result,
     }
 
 
