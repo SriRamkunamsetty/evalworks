@@ -18,7 +18,7 @@ dependencies = [
   "PyJWT>=2.10,<3.0",
   "email-validator>=2.2,<3.0",
   "cryptography>=50,<51",
-  "redis>=5.2,<7",
+  "redis>=5.2,<9",
 ]
 
 [project.optional-dependencies]
