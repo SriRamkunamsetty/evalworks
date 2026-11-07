@@ -140,3 +140,8 @@ def test_web_app_and_readiness_are_available(client):
     assert "EvalWorks" in client.get("/").text
     assert client.get("/chat.css").status_code == 200
     assert client.get("/health/ready").json()["status"] == "ready"
+
+
+def test_request_body_limit_rejects_oversized_input(client):
+    response = client.post("/api/v1/models/chat", content=b"x" * 65_537)
+    assert response.status_code == 413

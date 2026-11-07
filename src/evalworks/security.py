@@ -1,10 +1,9 @@
 import hmac
-import json
 from collections import defaultdict, deque
 from threading import Lock
 from time import monotonic
 
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyHeader
 
@@ -13,6 +12,17 @@ from evalworks.config import settings
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 _windows: dict[str, deque[float]] = defaultdict(deque)
 _lock = Lock()
+_SECURITY_HEADERS = [
+    (b"x-content-type-options", b"nosniff"),
+    (b"x-frame-options", b"DENY"),
+    (b"referrer-policy", b"no-referrer"),
+    (b"cache-control", b"no-store"),
+    (
+        b"content-security-policy",
+        b"default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; "
+        b"img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
+    ),
+]
 
 
 def require_api_key(provided: str | None = Depends(api_key_header)) -> str:
@@ -21,49 +31,74 @@ def require_api_key(provided: str | None = Depends(api_key_header)) -> str:
     return provided
 
 
-async def request_limits(request: Request, call_next):
-    body = await request.body()
-    if len(body) > settings.max_request_bytes:
-        return JSONResponse(
-            status_code=413, content={"detail": "Request body exceeds configured limit"}
-        )
-    client = request.client.host if request.client else "unknown"
-    now = monotonic()
-    with _lock:
-        bucket = _windows[client]
-        while bucket and now - bucket[0] > 60:
-            bucket.popleft()
-        if len(bucket) >= 120:
-            return JSONResponse(status_code=429, content={"detail": "Rate limit exceeded"})
-        bucket.append(now)
-        if len(_windows) > 10_000:
-            for host in [host for host, events in _windows.items() if not events]:
-                _windows.pop(host, None)
+class RequestLimitsMiddleware:
+    """Pure ASGI body-size and single-process rate limits, compatible with streamed responses."""
 
-    body_sent = False
+    def __init__(self, app):
+        self.app = app
 
-    async def receive():
-        nonlocal body_sent
-        if not body_sent:
-            body_sent = True
-            return {"type": "http.request", "body": body, "more_body": False}
-        return {"type": "http.disconnect"}
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
 
-    request._receive = receive
-    response = await call_next(request)
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["Referrer-Policy"] = "no-referrer"
-    response.headers["Cache-Control"] = "no-store"
-    response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; "
-        "img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
-    )
-    return response
+        async def secure_send(message):
+            if message["type"] == "http.response.start":
+                headers = list(message.get("headers", []))
+                names = {name.lower() for name, _ in headers}
+                headers.extend(
+                    (name, value) for name, value in _SECURITY_HEADERS if name not in names
+                )
+                message["headers"] = headers
+            await send(message)
 
+        messages = []
+        body_size = 0
+        while True:
+            message = await receive()
+            if message["type"] == "http.disconnect":
+                messages.append(message)
+                break
+            if message["type"] == "http.request":
+                body_size += len(message.get("body", b""))
+                if body_size > settings.max_request_bytes:
+                    response = JSONResponse(
+                        status_code=413,
+                        content={"detail": "Request body exceeds configured limit"},
+                    )
+                    await response(scope, receive, secure_send)
+                    return
+                messages.append(message)
+                if not message.get("more_body", False):
+                    break
+            else:
+                messages.append(message)
+                break
 
-def digest_payload(payload: dict) -> str:
-    import hashlib
+        client = scope.get("client")
+        host = client[0] if client else "unknown"
+        now = monotonic()
+        with _lock:
+            bucket = _windows[host]
+            while bucket and now - bucket[0] > 60:
+                bucket.popleft()
+            if len(bucket) >= 120:
+                response = JSONResponse(status_code=429, content={"detail": "Rate limit exceeded"})
+                await response(scope, receive, secure_send)
+                return
+            bucket.append(now)
+            if len(_windows) > 10_000:
+                for stale_host in [key for key, events in _windows.items() if not events]:
+                    _windows.pop(stale_host, None)
 
-    encoded = json.dumps(payload, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
-    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+        message_index = 0
+
+        async def replay_receive():
+            nonlocal message_index
+            if message_index < len(messages):
+                message = messages[message_index]
+                message_index += 1
+                return message
+            return await receive()
+
+        await self.app(scope, replay_receive, secure_send)

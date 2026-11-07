@@ -10,7 +10,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from evalworks.api import router
 from evalworks.config import settings, validate_production_settings
 from evalworks.db import engine
-from evalworks.security import request_limits
+from evalworks.security import RequestLimitsMiddleware
 
 WEB_ROOT = Path(__file__).parent / "web"
 
@@ -31,7 +31,7 @@ app.add_middleware(
     allow_methods=["GET", "POST", "DELETE"],
     allow_headers=["Content-Type", "X-API-Key"],
 )
-app.middleware("http")(request_limits)
+app.add_middleware(RequestLimitsMiddleware)
 app.include_router(router)
 
 
