@@ -30,7 +30,7 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - run: python -m venv .venv-audit && .venv-audit/bin/python -m pip install . pip-audit && .venv-audit/bin/python -m pip_audit
+      - run: python -m venv .venv-audit && .venv-audit/bin/python -m pip install --upgrade pip && .venv-audit/bin/python -m pip install -e . pip-audit && .venv-audit/bin/python -m pip_audit --skip-editable
   container:
     runs-on: ubuntu-latest
     steps:
