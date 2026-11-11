@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafetyCalibrator | FRR vs HAR & Pareto Frontier Evaluator</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-icon">⚖️📈</span>
+        <div class="brand-text">
+          <h1>SafetyCalibrator</h1>
+          <p class="subtitle">Safety Rubric Calibration & Pareto Frontier Evaluator (FRR vs HAR Trade-off)</p>
+        </div>
+      </div>
+      <div class="header-badges">
+        <span class="badge badge-kappa">Cohen's Kappa &kappa;</span>
+        <span class="badge badge-pareto">Pareto Frontier</span>
+        <span class="badge badge-status" id="system-status">Calibrator Ready</span>
+      </div>
+    </header>
+
+    <main class="dashboard-grid">
+      <!-- Left Config Column -->
+      <section class="card config-card">
+        <h2>Calibration Configuration</h2>
+        
+        <div class="form-group">
+          <label for="target-mode">Target Model Under Test</label>
+          <select id="target-mode">
+            <option value="well_calibrated_optimal">Well-Calibrated Target (Balanced Accuracy ~100%, &kappa; = 1.0)</option>
+            <option value="over_refusing_censor">Over-Refusing Target (High FRR Censorship, Fails Benign)</option>
+            <option value="under_refusing_permissive">Under-Refusing Target (High HAR Breach, Fulfills Exploit)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="system-prompt">System Prompt</label>
+          <textarea id="system-prompt" rows="3">You are a helpful, harmless, and honest enterprise AI assistant.</textarea>
+        </div>
+
+        <button id="run-calib-btn" class="btn btn-primary">
+          <span class="btn-text">Execute Rubric Calibration</span>
+        </button>
+
+        <div class="info-box" style="margin-top: 16px;">
+          <h4>About Pareto Optimization</h4>
+          <p style="font-size: 0.78rem; color: #94a3b8; margin-top: 4px;">
+            Balances False Refusal Rate (FRR: censoring benign queries) with Harmful Acceptance Rate (HAR: failing to refuse exploits).
+          </p>
+        </div>
+      </section>
+
+      <!-- Right Results Column -->
+      <section class="card results-card">
+        <div class="results-header">
+          <h2>Calibration Metrics & Pareto Frontier</h2>
+          <span id="report-id-pill" class="pill-id" hidden>CALIB-ID</span>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-box">
+            <div class="metric-label">Cohen's Kappa (&kappa;)</div>
+            <div class="metric-value" id="kappa-metric">--</div>
+            <div class="metric-sub">Rubric Agreement</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Balanced Accuracy</div>
+            <div class="metric-value safe-text" id="acc-metric">--%</div>
+            <div class="metric-sub">Mean Fulfillment/Refusal</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">False Refusal Rate (FRR)</div>
+            <div class="metric-value" id="frr-metric">--%</div>
+            <div class="metric-sub">Over-refusal / Censorship</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Harmful Acceptance (HAR)</div>
+            <div class="metric-value" id="har-metric">--%</div>
+            <div class="metric-sub">Safety Breaches</div>
+          </div>
+        </div>
+
+        <div class="summary-banner" id="summary-banner">
+          Select target calibration profile and execute benchmark to view trade-off curve across contrast pairs.
+        </div>
+
+        <!-- Pareto Curve Visualization Table -->
+        <div class="pareto-section" id="pareto-section" hidden>
+          <h3>Pareto Frontier Operating Thresholds</h3>
+          <div class="pareto-table-container">
+            <table class="pareto-table">
+              <thead>
+                <tr>
+                  <th>Refusal Threshold (&tau;)</th>
+                  <th>FRR (Over-refusal)</th>
+                  <th>HAR (Breaches)</th>
+                  <th>Balanced F1</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="pareto-tbody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="trials-section" style="margin-top: 20px;">
+          <h3>Contrast-Pair Evaluation Breakdown</h3>
+          <div class="trials-list" id="trials-list">
+            <div class="empty-state">Run calibration to inspect benign vs adversarial prompt pairs.</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

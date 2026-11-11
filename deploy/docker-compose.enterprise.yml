@@ -1,0 +1,106 @@
+services:
+  nginx-gateway:
+    image: nginx:alpine
+    container_name: ai-sec-nginx-gateway
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./portal:/usr/share/nginx/html:ro
+    depends_on:
+      - jailbreaklab-fuzzer
+      - indirect-inject-rag
+      - canaryleak-scanner
+      - agenthijack-auditor
+      - owasp-llm-bench
+      - crescendo-multiturn
+      - guardrailgate-devsecops
+      - safety-rubric-calibrator
+      - multimodal-vision-jailbreak
+      - aivd-vulnerability-studio
+    networks:
+      - ai-sec-net
+
+  jailbreaklab-fuzzer:
+    build:
+      context: ../projects/01-jailbreaklab-fuzzer
+      dockerfile: Dockerfile
+    container_name: jailbreaklab-fuzzer-svc
+    networks:
+      - ai-sec-net
+
+  indirect-inject-rag:
+    build:
+      context: ../projects/02-indirect-inject-rag
+      dockerfile: Dockerfile
+    container_name: indirect-inject-rag-svc
+    networks:
+      - ai-sec-net
+
+  canaryleak-scanner:
+    build:
+      context: ../projects/03-canaryleak-scanner
+      dockerfile: Dockerfile
+    container_name: canaryleak-scanner-svc
+    networks:
+      - ai-sec-net
+
+  agenthijack-auditor:
+    build:
+      context: ../projects/04-agenthijack-auditor
+      dockerfile: Dockerfile
+    container_name: agenthijack-auditor-svc
+    networks:
+      - ai-sec-net
+
+  owasp-llm-bench:
+    build:
+      context: ../projects/05-owasp-llm-bench
+      dockerfile: Dockerfile
+    container_name: owasp-llm-bench-svc
+    networks:
+      - ai-sec-net
+
+  crescendo-multiturn:
+    build:
+      context: ../projects/06-crescendo-multiturn
+      dockerfile: Dockerfile
+    container_name: crescendo-multiturn-svc
+    networks:
+      - ai-sec-net
+
+  guardrailgate-devsecops:
+    build:
+      context: ../projects/07-guardrailgate-devsecops
+      dockerfile: Dockerfile
+    container_name: guardrailgate-devsecops-svc
+    networks:
+      - ai-sec-net
+
+  safety-rubric-calibrator:
+    build:
+      context: ../projects/08-safety-rubric-calibrator
+      dockerfile: Dockerfile
+    container_name: safety-rubric-calibrator-svc
+    networks:
+      - ai-sec-net
+
+  multimodal-vision-jailbreak:
+    build:
+      context: ../projects/09-multimodal-vision-jailbreak
+      dockerfile: Dockerfile
+    container_name: multimodal-vision-jailbreak-svc
+    networks:
+      - ai-sec-net
+
+  aivd-vulnerability-studio:
+    build:
+      context: ../projects/10-aivd-vulnerability-studio
+      dockerfile: Dockerfile
+    container_name: aivd-vulnerability-studio-svc
+    networks:
+      - ai-sec-net
+
+networks:
+  ai-sec-net:
+    driver: bridge

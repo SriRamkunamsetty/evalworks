@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CrescendoLab | Multi-Turn Conversational Escalation Simulator</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-icon">📈🔓</span>
+        <div class="brand-text">
+          <h1>CrescendoLab Simulator</h1>
+          <p class="subtitle">Multi-Turn Cognitive Escalation & Guardrail Degradation Bench (MS Crescendo Attack)</p>
+        </div>
+      </div>
+      <div class="header-badges">
+        <span class="badge badge-technique">Crescendo Attack</span>
+        <span class="badge badge-mitre">AML.T0054</span>
+        <span class="badge badge-status" id="system-status">Simulator Ready</span>
+      </div>
+    </header>
+
+    <main class="dashboard-grid">
+      <!-- Left Config Column -->
+      <section class="card config-card">
+        <h2>Escalation Configuration</h2>
+        
+        <div class="form-group">
+          <label for="scenario-select">Escalation Attack Scenario</label>
+          <select id="scenario-select">
+            <!-- Dynamic scenarios -->
+          </select>
+        </div>
+
+        <div class="scenario-details" id="scenario-details">
+          <!-- Scenario info -->
+        </div>
+
+        <div class="form-group">
+          <label for="target-mode">Target Model Under Test</label>
+          <select id="target-mode">
+            <option value="hardened_adaptive_refusal">Hardened Target (Adaptive Trajectory Refusal)</option>
+            <option value="leaky_crescendo_vulnerable">Vulnerable Target (Single-Turn Safe, Multi-Turn Collapses)</option>
+          </select>
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label>
+            <input type="checkbox" id="backtracking-check" checked>
+            Enable Adaptive Backtracking (Rewrites prompt if early refusal occurs)
+          </label>
+        </div>
+
+        <button id="run-sim-btn" class="btn btn-primary">
+          <span class="btn-text">Execute Crescendo Simulation</span>
+        </button>
+      </section>
+
+      <!-- Right Column: Conversation Stream & Metrics -->
+      <section class="card results-card">
+        <div class="results-header">
+          <h2>Conversational Stream & Guardrail Degradation</h2>
+          <span id="report-id-pill" class="pill-id" hidden>CRES-ID</span>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-box">
+            <div class="metric-label">Single-Turn Direct</div>
+            <div class="metric-value safe-text" id="single-turn-metric">--</div>
+            <div class="metric-sub">Keyword barrier</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Multi-Turn Crescendo</div>
+            <div class="metric-value" id="multi-turn-metric">--</div>
+            <div class="metric-sub">Cumulative drift</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Turn of Failure (ToF)</div>
+            <div class="metric-value" id="tof-metric">None</div>
+            <div class="metric-sub">Collapse point</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Amplification Factor</div>
+            <div class="metric-value" id="amplification-metric">0.0x</div>
+            <div class="metric-sub">Multi-turn edge</div>
+          </div>
+        </div>
+
+        <div class="summary-banner" id="summary-banner">
+          Select an escalation scenario and run the simulation to visualize turn-by-turn guardrail degradation.
+        </div>
+
+        <div class="chat-stream" id="chat-stream">
+          <div class="empty-state">No simulation executed yet. Click "Execute Crescendo Simulation" to launch 5-turn dialogue.</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

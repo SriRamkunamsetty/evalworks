@@ -1,0 +1,85 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ai-security-ingress
+  namespace: ai-security-mesh
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
+spec:
+  rules:
+    - host: redteam.ai-security.local
+      http:
+        paths:
+          - path: /fuzzer
+            pathType: Prefix
+            backend:
+              service:
+                name: fuzzer-svc
+                port:
+                  number: 8001
+          - path: /rag
+            pathType: Prefix
+            backend:
+              service:
+                name: rag-svc
+                port:
+                  number: 8002
+          - path: /canary
+            pathType: Prefix
+            backend:
+              service:
+                name: canary-svc
+                port:
+                  number: 8003
+          - path: /agent
+            pathType: Prefix
+            backend:
+              service:
+                name: agent-svc
+                port:
+                  number: 8004
+          - path: /owasp
+            pathType: Prefix
+            backend:
+              service:
+                name: owasp-svc
+                port:
+                  number: 8005
+          - path: /crescendo
+            pathType: Prefix
+            backend:
+              service:
+                name: crescendo-svc
+                port:
+                  number: 8006
+          - path: /gate
+            pathType: Prefix
+            backend:
+              service:
+                name: gate-svc
+                port:
+                  number: 8007
+          - path: /calibrator
+            pathType: Prefix
+            backend:
+              service:
+                name: calibrator-svc
+                port:
+                  number: 8008
+          - path: /vision
+            pathType: Prefix
+            backend:
+              service:
+                name: vision-svc
+                port:
+                  number: 8009
+          - path: /aivd
+            pathType: Prefix
+            backend:
+              service:
+                name: aivd-svc
+                port:
+                  number: 8010

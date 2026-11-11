@@ -1,0 +1,17 @@
+services:
+  guardrailgate-devsecops:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: guardrailgate-devsecops
+    ports:
+      - "8007:8007"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8007
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8007/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3

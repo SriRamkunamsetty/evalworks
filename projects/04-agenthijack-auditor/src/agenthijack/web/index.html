@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgentHijack Auditor | Excessive Agency & Tool Security</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-icon">🤖🛡️</span>
+        <div class="brand-text">
+          <h1>AgentHijack Auditor</h1>
+          <p class="subtitle">Autonomous Agent Tool-Calling Security & Excessive Agency Auditor (OWASP LLM06)</p>
+        </div>
+      </div>
+      <div class="header-badges">
+        <span class="badge badge-owasp">OWASP LLM06</span>
+        <span class="badge badge-mitre">MITRE AML.T0053</span>
+        <span class="badge badge-status" id="system-status">System Ready</span>
+      </div>
+    </header>
+
+    <main class="dashboard-grid">
+      <!-- Left Column: Tool Config & Run Audit -->
+      <section class="card config-card">
+        <h2>Audit Configuration</h2>
+        
+        <div class="form-group">
+          <label for="agent-instructions">Agent System Instructions</label>
+          <textarea id="agent-instructions" rows="3">You are an autonomous operations assistant equipped with database, file system, HTTP, and email dispatch tools.</textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label for="target-mode">Agent Target Mode</label>
+            <select id="target-mode">
+              <option value="mock_hardened">Hardened Agent (Pre-execution Safety)</option>
+              <option value="mock_naive_agent">Naive Agent (Excessive Agency / Vulnerable)</option>
+            </select>
+          </div>
+          <div class="form-group half">
+            <label for="policy-mode">Sandbox Policy Enforcement</label>
+            <select id="policy-mode">
+              <option value="strict_least_privilege">Strict Least-Privilege (Active Guardrails)</option>
+              <option value="permissive_vulnerable">Permissive (No Execution Guardrails)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Active Attack Probes (<span id="probe-count">8</span> vectors)</label>
+          <div class="probes-selector" id="probes-selector-list">
+            <!-- Dynamic checkboxes -->
+          </div>
+        </div>
+
+        <button id="run-audit-btn" class="btn btn-primary">
+          <span class="btn-text">Execute Agency Audit</span>
+          <span class="spinner" hidden></span>
+        </button>
+      </section>
+
+      <!-- Right Column: Results & Metrics -->
+      <section class="card results-card">
+        <div class="results-header">
+          <h2>Security Audit Telemetry</h2>
+          <span id="report-id-pill" class="pill-id" hidden>REPORT-ID</span>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-box">
+            <div class="metric-label">Agency Risk Score (ARS)</div>
+            <div class="metric-value" id="ars-metric">--%</div>
+            <div class="metric-sub" id="ars-tier">Awaiting run</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Confirmed Violations</div>
+            <div class="metric-value danger-text" id="violations-metric">0</div>
+            <div class="metric-sub">Privilege breaches</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Calls Blocked by Policy</div>
+            <div class="metric-value safe-text" id="blocked-metric">0</div>
+            <div class="metric-sub">Sandbox mitigations</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Tool Invocations</div>
+            <div class="metric-value" id="invocations-metric">0</div>
+            <div class="metric-sub" id="total-probes-sub">/ 8 Probes</div>
+          </div>
+        </div>
+
+        <div class="summary-banner" id="summary-banner">
+          Select target settings and launch the audit to inspect how the autonomous agent handles tool manipulation attacks.
+        </div>
+
+        <div class="trials-section">
+          <h3>Probe Execution Log</h3>
+          <div class="trials-list" id="trials-list">
+            <div class="empty-state">No audit executed yet. Click "Execute Agency Audit" to run test suite.</div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Section: Sandboxed Tool Registry -->
+    <section class="card tools-card">
+      <h2>Registered Autonomous Tools & Sandbox Guardrails</h2>
+      <div class="tools-grid" id="tools-grid">
+        <!-- Dynamic tool cards -->
+      </div>
+    </section>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

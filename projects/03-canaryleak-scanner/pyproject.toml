@@ -1,0 +1,55 @@
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "canaryleak"
+version = "0.1.0"
+description = "System Prompt Extraction & Canary Token Leakage Scanner for LLMs."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+  { name = "AI Security Research Team" }
+]
+keywords = ["ai-security", "system-prompt-leakage", "canary-tokens", "owasp-llm", "confidentiality"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Information Technology",
+  "Topic :: Security",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+  "fastapi>=0.115,<1.0",
+  "uvicorn[standard]>=0.34,<1.0",
+  "pydantic>=2.10,<3.0",
+  "pydantic-settings>=2.7,<3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3,<10",
+  "httpx>=0.28,<1",
+  "ruff>=0.9,<1",
+]
+
+[project.scripts]
+canaryleak = "canaryleak.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["B008"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/canaryleak"]

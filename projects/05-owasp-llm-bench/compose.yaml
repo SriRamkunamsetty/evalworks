@@ -1,0 +1,17 @@
+services:
+  owasp-llm-bench:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: owasp-llm-bench
+    ports:
+      - "8005:8005"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8005
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3

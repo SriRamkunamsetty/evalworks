@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>IndirectInject · RAG Context Poisoning & Indirect Prompt Injection Bench</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <header class="top-nav">
+        <div class="brand">
+          <span class="shield-badge">II</span>
+          <div>
+            <h1>IndirectInject</h1>
+            <span class="subtitle">RAG CONTEXT POISONING & INDIRECT PROMPT INJECTION SIMULATOR</span>
+          </div>
+        </div>
+        <div class="system-status">
+          <span class="dot"></span> OWASP LLM01 / LLM08 · MITRE ATLAS AML.T0058
+        </div>
+      </header>
+
+      <main class="dashboard-grid">
+        <!-- Left: Document Ingestion & Poisoning -->
+        <section class="panel-card">
+          <h2>1. Knowledge Ingestion & Document Poisoner</h2>
+
+          <label for="doc-name">Document Title</label>
+          <input id="doc-name" type="text" value="employee_handbook.txt" />
+
+          <label for="poison-strat">Adversarial Poison Strategy</label>
+          <select id="poison-strat">
+            <option value="none">None (Clean Document)</option>
+            <option value="xml_override" selected>XML Boundary Directive Override</option>
+            <option value="markdown_exfiltration">Markdown Image Silent Exfiltration</option>
+            <option value="zero_width_stego">Zero-Width Steganographic Injection</option>
+            <option value="system_impersonation">Administrative Context Impersonation</option>
+            <option value="summary_hijack">Policy Disinformation & Summary Hijack</option>
+          </select>
+
+          <label for="trigger-kw">Trigger Keyword (Boosts Retrieval Score)</label>
+          <input id="trigger-kw" type="text" value="return policy refunds" />
+
+          <label for="doc-content">Document Body</label>
+          <textarea id="doc-content" rows="6">Customer Returns and Exchange Guidelines:
+All product return requests must be initiated within 30 days of delivery.
+Customers are eligible for full refunds if items remain in original unopened packaging.
+
+Customer Support and Account Inquiries:
+Support agents are available Monday through Friday from 9 AM to 5 PM EST.</textarea>
+
+          <div class="btn-row">
+            <button id="ingest-btn" type="button" class="primary-btn">Ingest into RAG Index</button>
+            <button id="reset-btn" type="button" class="secondary-btn">Reset Index</button>
+          </div>
+          <div id="ingest-status" class="status-msg"></div>
+
+          <h3 class="subhead">Active RAG Index Chunks</h3>
+          <div id="chunks-list" class="chunks-container">
+            <!-- Populated dynamically -->
+          </div>
+        </section>
+
+        <!-- Right: RAG Query Simulation & Security Audit -->
+        <section class="panel-card">
+          <h2>2. RAG Retrieval & Execution Audit</h2>
+
+          <label for="user-query">User Query to Knowledge Assistant</label>
+          <div class="query-row">
+            <input id="user-query" type="text" value="What is the return policy for purchases?" />
+            <button id="sim-btn" type="button" class="accent-btn">Execute Query ↗</button>
+          </div>
+
+          <div class="guardrail-toggle-row">
+            <div>
+              <span class="label-text">RAG Guardrail Architecture:</span>
+              <small>Choose whether prompt includes data-isolation boundaries</small>
+            </div>
+            <select id="guardrail-mode">
+              <option value="vulnerable" selected>Standard RAG (Vulnerable to Indirect Injection)</option>
+              <option value="strict">Hardened RAG (Data-Separated Guardrail)</option>
+            </select>
+          </div>
+
+          <div class="metrics-row">
+            <div class="metric-box">
+              <span class="metric-val" id="m-chunks">0</span>
+              <span class="metric-lbl">CHUNKS RETRIEVED</span>
+            </div>
+            <div class="metric-box alert">
+              <span class="metric-val" id="m-status">-</span>
+              <span class="metric-lbl">GUARDRAIL STATUS</span>
+            </div>
+            <div class="metric-box warning">
+              <span class="metric-val" id="m-risk">0.0</span>
+              <span class="metric-lbl">RISK SCORE (0-10)</span>
+            </div>
+          </div>
+
+          <div class="audit-section">
+            <label>Model Synthesis Output</label>
+            <div id="model-output" class="output-box">
+              Click 'Execute Query' to evaluate whether retrieved document chunks hijack the model.
+            </div>
+
+            <label>Security Analyst Evaluation</label>
+            <div id="audit-analysis" class="analysis-box">
+              Awaiting query execution...
+            </div>
+
+            <label>Synthesized Context Window (Sent to Target LLM)</label>
+            <pre id="synthesized-prompt" class="prompt-box">Context window prompt preview will appear here.</pre>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="/app.js" defer></script>
+  </body>
+</html>

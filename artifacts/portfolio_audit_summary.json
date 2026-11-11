@@ -1,0 +1,98 @@
+{
+  "timestamp": "2026-11-11T15:01:04.000722+00:00",
+  "total_projects": 10,
+  "passed_projects": 10,
+  "all_passed": true,
+  "results": [
+    {
+      "id": "01",
+      "name": "JailbreakLab",
+      "domain": "Adversarial Fuzzing",
+      "threat": "Direct Prompt Injection & Obfuscation",
+      "passed": true,
+      "duration_sec": 1.94,
+      "summary": "29 passed in 0.73s"
+    },
+    {
+      "id": "02",
+      "name": "IndirectInject",
+      "domain": "RAG Security",
+      "threat": "Poisoned Chunk & XML Delimiter Hijacking",
+      "passed": true,
+      "duration_sec": 3.05,
+      "summary": "20 passed in 0.73s"
+    },
+    {
+      "id": "03",
+      "name": "CanaryLeak",
+      "domain": "Confidentiality",
+      "threat": "System Prompt & Canary Extraction",
+      "passed": true,
+      "duration_sec": 2.01,
+      "summary": "26 passed in 0.85s"
+    },
+    {
+      "id": "04",
+      "name": "AgentHijack",
+      "domain": "Autonomous Agents",
+      "threat": "Tool Abuse & Excessive Agency",
+      "passed": true,
+      "duration_sec": 3.46,
+      "summary": "28 passed in 0.85s"
+    },
+    {
+      "id": "05",
+      "name": "OWASP-LLM-Bench",
+      "domain": "Compliance",
+      "threat": "OWASP Top 10 for LLMs Complete Audit",
+      "passed": true,
+      "duration_sec": 2.02,
+      "summary": "20 passed in 0.79s"
+    },
+    {
+      "id": "06",
+      "name": "CrescendoLab",
+      "domain": "Multi-Turn Attacks",
+      "threat": "Cognitive Escalation & Semantic Masking",
+      "passed": true,
+      "duration_sec": 3.25,
+      "summary": "15 passed in 0.80s"
+    },
+    {
+      "id": "07",
+      "name": "GuardrailGate",
+      "domain": "DevSecOps CI/CD",
+      "threat": "Safety Regression Prevention & SARIF Reporting",
+      "passed": true,
+      "duration_sec": 2.1,
+      "summary": "13 passed in 0.86s"
+    },
+    {
+      "id": "08",
+      "name": "SafetyCalibrator",
+      "domain": "Refusal Calibration",
+      "threat": "FRR vs HAR Trade-off & Inter-Rater Agreement",
+      "passed": true,
+      "duration_sec": 3.66,
+      "summary": "21 passed in 1.24s"
+    },
+    {
+      "id": "09",
+      "name": "VisionJailbreak",
+      "domain": "Multimodal Security",
+      "threat": "Typographic & Visual Prompt Injection",
+      "passed": true,
+      "duration_sec": 2.18,
+      "summary": "18 passed in 0.91s"
+    },
+    {
+      "id": "10",
+      "name": "AIVD Studio",
+      "domain": "Vulnerability Disclosure",
+      "threat": "AI-CVSS 3.1 Scoring & Automated Pytest Fixtures",
+      "passed": true,
+      "duration_sec": 3.07,
+      "summary": "23 passed in 0.81s"
+    }
+  ]
+}

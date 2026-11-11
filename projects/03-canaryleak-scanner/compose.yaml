@@ -1,0 +1,17 @@
+services:
+  canaryleak-scanner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: canaryleak-scanner
+    ports:
+      - "8003:8003"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8003
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3

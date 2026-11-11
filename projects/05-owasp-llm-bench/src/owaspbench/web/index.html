@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OWASP LLM Bench | Top 10 Security & Compliance Benchmark</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-icon">🛡️📊</span>
+        <div class="brand-text">
+          <h1>OWASP LLM Benchmark</h1>
+          <p class="subtitle">Standardized Security & Compliance Radar for LLM Applications (2025/2026)</p>
+        </div>
+      </div>
+      <div class="header-badges">
+        <span class="badge badge-owasp">OWASP Top 10</span>
+        <span class="badge badge-mitre">MITRE ATLAS</span>
+        <span class="badge badge-status" id="system-status">Suite Ready (30 Tests)</span>
+      </div>
+    </header>
+
+    <main class="dashboard-grid">
+      <!-- Left Config Column -->
+      <section class="card config-card">
+        <h2>Benchmark Configuration</h2>
+        
+        <div class="form-group">
+          <label for="target-mode">Target Model Under Test</label>
+          <select id="target-mode">
+            <option value="hardened_grade_a">Hardened Enterprise Model (Target Grade: A+)</option>
+            <option value="typical_enterprise_grade_c">Typical Enterprise Baseline (Target Grade: C)</option>
+            <option value="vulnerable_grade_f">Unconstrained / Vulnerable Model (Target Grade: F)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>OWASP Categories Monitored (<span id="cat-count">10</span> Categories)</label>
+          <div class="categories-selector" id="categories-selector">
+            <!-- Dynamic Category Checkboxes -->
+          </div>
+        </div>
+
+        <button id="run-bench-btn" class="btn btn-primary">
+          <span class="btn-text">Run Full Compliance Benchmark</span>
+        </button>
+      </section>
+
+      <!-- Right Telemetry Column -->
+      <section class="card results-card">
+        <div class="results-header">
+          <h2>Compliance Radar & Executive Grading</h2>
+          <span id="report-id-pill" class="pill-id" hidden>OWASP-ID</span>
+        </div>
+
+        <div class="grade-banner">
+          <div class="grade-box">
+            <div class="grade-letter" id="grade-letter">--</div>
+            <div class="grade-label">Overall Rating</div>
+          </div>
+          <div class="grade-meta">
+            <div class="grade-score" id="grade-score">Compliance Score: --%</div>
+            <div class="grade-stats" id="grade-stats">Passed: 0 / 0 Evaluations</div>
+            <div class="executive-summary" id="executive-summary">
+              Select target model and execute the benchmark to generate radar breakdown across all 10 OWASP categories.
+            </div>
+          </div>
+        </div>
+
+        <div class="scorecard-section">
+          <h3>OWASP Top 10 Scorecard Breakdown</h3>
+          <div class="scorecard-grid" id="scorecard-grid">
+            <!-- Dynamic 10 Category Cards -->
+          </div>
+        </div>
+
+        <div class="trials-section">
+          <h3>Test Evaluation Findings</h3>
+          <div class="trials-list" id="trials-list">
+            <div class="empty-state">Run the benchmark to review test-by-test findings and refusal logs.</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

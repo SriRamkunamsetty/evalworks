@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alignerr AI Security Mesh - Enterprise Red Team Operations Center</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #070a12;
+      --bg-card: #0f172a;
+      --border: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.2);
+      --red: #f43f5e;
+      --green: #10b981;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      padding: 32px;
+      line-height: 1.5;
+    }
+    .container { max-width: 1500px; margin: 0 auto; }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 32px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .logo-badge {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+    .subtitle { font-size: 13px; color: var(--text-muted); }
+    .status-pill {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid var(--green);
+      color: var(--green);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .hero {
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.8) 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 32px;
+      margin-bottom: 32px;
+    }
+    .hero h2 { font-size: 18px; margin-bottom: 8px; color: var(--accent); }
+    .hero p { color: #cbd5e1; font-size: 14px; max-width: 1000px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+    }
+    .card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px var(--accent-glow);
+    }
+    .card-top { margin-bottom: 16px; }
+    .card-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .card h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .card p { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+    .card-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+      margin-top: 14px;
+    }
+    .port-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+    .btn {
+      background: #2563eb;
+      color: #fff;
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #1d4ed8; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <div class="logo-badge">🛡️</div>
+        <div>
+          <h1>Alignerr AI Security Mesh</h1>
+          <div class="subtitle">Unified Operations Portal & Adversarial Red-Team Microservices Suite</div>
+        </div>
+      </div>
+      <div class="status-pill">● 10/10 SERVICES HEALTHY (K8S READY)</div>
+    </header>
+
+    <div class="hero">
+      <h2>Production-Grade AI Red Team & Security Testing Infrastructure</h2>
+      <p>
+        An enterprise-scale microservices mesh evaluating frontier LLMs, RAG architectures, autonomous agents, and Vision-Language Models across all 10 OWASP LLM categories, MITRE ATLAS techniques, and continuous CI/CD safety gates. Built specifically for the Alignerr AI Security Tester portfolio.
+      </p>
+    </div>
+
+    <div class="grid">
+      <!-- 1 -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-badge">01 • Adversarial Fuzzer</div>
+          <h3>JailbreakLab</h3>
+          <p>Direct prompt injection fuzzer featuring 7 mutation strategies (Base64, ROT13, Leetspeak, DAN, AIM, Zero-Width) and automated refusal containment scoring.</p>
+        </div>
+        <div class="card-bottom">
+          <span class="port-tag">Port :8001 (/fuzzer/)</span>
+          <a href="/fuzzer/" class="btn">Launch Studio →</a>
+        </div>
+      </div>
+
+      <!-- 2 -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-badge">02 • RAG Security</div>
+          <h3>IndirectInject</h3>
+          <p>RAG knowledge-base poisoning and XML context boundary injection benchmark for enterprise document ingestion pipelines.</p>
+        </div>
+        <div class="card-bottom">
+          <span class="port-tag">Port :8002 (/rag/)</span>
+          <a href="/rag/" class="btn">Launch Studio →</a>
+        </div>
+      </div>
+
+      <!-- 3 -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-badge">03 • Confidentiality</div>
+          <h3>CanaryLeak</h3>
+          <p>System prompt extraction scanner utilizing cryptographic HMAC-SHA256 canary tracking and Shannon differential entropy heuristics.</p>
+        </div>
+        <div class="card-bottom">
+          <span class="port-tag">Port :8003 (/canary/)</span>
+          <a href="/canary/" class="btn">Launch Studio →</a>
+        </div>
+      </div>
+
+      <!-- 4 -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-badge">04 • Agentic Safety</div>
+          <h3>AgentHijack</h3>
+          <p>Autonomous agent tool-calling auditor evaluating excessive agency, SSRF, arbitrary code execution, and unvalidated SQL parameters.</p>
+        </div>
+        <div class="card-bottom">
+          <span class="port-tag">Port :8004 (/agent/)</span>
+          <a href="/agent/" class="btn">Launch Studio →</a>
+        </div>
+      </div>
+
+      <!-- 5 -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-badge">05 • Industry Standard</div>
+          <h3>OWASP-LLM-Bench</h3>
+          <p>Automated compliance auditor evaluating models against all 10 categories of the OWASP Top 10 for Large Language Models.</p>
+        </div>
+        <div class="card-bottom">
+          <span class="port-tag">Port :8005 (/owasp/)</span>
+          <a href="/owasp/" class="btn">Launch Studio →</a>
+        </div>
+      </div>
+
+      <!-- 6 -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-badge">06 • Multi-Turn Attacks</div>
+          <h3>CrescendoLab</h3>
+          <p>Multi-turn cognitive escalation simulator testing conversational semantic masking, gradual trust building, and turn-by-turn guardrail decay.</p>
+        </div>
+        <div class="card-bottom">
+          <span class="port-tag">Port :8006 (/crescendo/)</span>
+          <a href="/crescendo/" class="btn">Launch Studio →</a>
+        </div>
+      </div>
+
+      <!-- 7 -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-badge">07 • DevSecOps CI/CD</div>
+          <h3>GuardrailGate</h3>
+          <p>Automated CI/CD security gate blocking GitHub pull requests on safety regressions and exporting OASIS SARIF vulnerability reports.</p>
+        </div>
+        <div class="card-bottom">
+          <span class="port-tag">Port :8007 (/gate/)</span>
+          <a href="/gate/" class="btn">Launch Studio →</a>
+        </div>
+      </div>
+
+      <!-- 8 -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-badge">08 • Refusal Calibration</div>
+          <h3>SafetyCalibrator</h3>
+          <p>Calculates False Refusal Rate (FRR) vs. Harmful Acceptance Rate (HAR), Cohen's Kappa inter-rater agreement, and Pareto safety curves.</p>
+        </div>
+        <div class="card-bottom">
+          <span class="port-tag">Port :8008 (/calibrator/)</span>
+          <a href="/calibrator/" class="btn">Launch Studio →</a>
+        </div>
+      </div>
+
+      <!-- 9 -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-badge">09 • Multimodal Security</div>
+          <h3>VisionJailbreak</h3>
+          <p>VLM adversarial testbed rendering programmatic typographic attack images, rotational skew, low-contrast steganography, and noise perturbations.</p>
+        </div>
+        <div class="card-bottom">
+          <span class="port-tag">Port :8009 (/vision/)</span>
+          <a href="/vision/" class="btn">Launch Studio →</a>
+        </div>
+      </div>
+
+      <!-- 10 -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-badge">10 • Vulnerability Disclosure</div>
+          <h3>AIVD Studio</h3>
+          <p>AI Vulnerability Database calculating FIRST.org CVSS 3.1 scores, MITRE ATLAS mapping, executive advisories, and synthesized pytest fixtures.</p>
+        </div>
+        <div class="card-bottom">
+          <span class="port-tag">Port :8010 (/aivd/)</span>
+          <a href="/aivd/" class="btn">Launch Studio →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

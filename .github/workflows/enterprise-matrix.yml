@@ -1,0 +1,77 @@
+name: Enterprise AI Security Monorepo CI/CD Matrix
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  lint-and-test:
+    name: Test ${{ matrix.project.name }} (${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+        project:
+          - name: "01-jailbreaklab-fuzzer"
+            path: "projects/01-jailbreaklab-fuzzer"
+          - name: "02-indirect-inject-rag"
+            path: "projects/02-indirect-inject-rag"
+          - name: "03-canaryleak-scanner"
+            path: "projects/03-canaryleak-scanner"
+          - name: "04-agenthijack-auditor"
+            path: "projects/04-agenthijack-auditor"
+          - name: "05-owasp-llm-bench"
+            path: "projects/05-owasp-llm-bench"
+          - name: "06-crescendo-multiturn"
+            path: "projects/06-crescendo-multiturn"
+          - name: "07-guardrailgate-devsecops"
+            path: "projects/07-guardrailgate-devsecops"
+          - name: "08-safety-rubric-calibrator"
+            path: "projects/08-safety-rubric-calibrator"
+          - name: "09-multimodal-vision-jailbreak"
+            path: "projects/09-multimodal-vision-jailbreak"
+          - name: "10-aivd-vulnerability-studio"
+            path: "projects/10-aivd-vulnerability-studio"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff pytest pytest-asyncio
+          cd ${{ matrix.project.path }}
+          pip install -e .
+
+      - name: Lint with Ruff
+        run: |
+          cd ${{ matrix.project.path }}
+          ruff check .
+
+      - name: Run Pytest Suite
+        run: |
+          cd ${{ matrix.project.path }}
+          python -m pytest tests -v
+
+  k8s-manifest-validation:
+    name: Validate Kubernetes Manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install yamllint
+        run: pip install yamllint
+      - name: Lint K8s YAMLs
+        run: |
+          yamllint -d "{extends: default, rules: {line-length: {max: 180}, document-start: disable}}" deploy/k8s/

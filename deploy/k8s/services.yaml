@@ -1,0 +1,129 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fuzzer-svc
+  namespace: ai-security-mesh
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8001
+      targetPort: 8001
+  selector:
+    app: jailbreaklab-fuzzer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rag-svc
+  namespace: ai-security-mesh
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8002
+      targetPort: 8002
+  selector:
+    app: indirect-inject-rag
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: canary-svc
+  namespace: ai-security-mesh
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8003
+      targetPort: 8003
+  selector:
+    app: canaryleak-scanner
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-svc
+  namespace: ai-security-mesh
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8004
+      targetPort: 8004
+  selector:
+    app: agenthijack-auditor
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: owasp-svc
+  namespace: ai-security-mesh
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8005
+      targetPort: 8005
+  selector:
+    app: owasp-llm-bench
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: crescendo-svc
+  namespace: ai-security-mesh
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8006
+      targetPort: 8006
+  selector:
+    app: crescendo-multiturn
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gate-svc
+  namespace: ai-security-mesh
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8007
+      targetPort: 8007
+  selector:
+    app: guardrailgate-devsecops
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: calibrator-svc
+  namespace: ai-security-mesh
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8008
+      targetPort: 8008
+  selector:
+    app: safety-rubric-calibrator
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vision-svc
+  namespace: ai-security-mesh
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8009
+      targetPort: 8009
+  selector:
+    app: multimodal-vision-jailbreak
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aivd-svc
+  namespace: ai-security-mesh
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8010
+      targetPort: 8010
+  selector:
+    app: aivd-vulnerability-studio

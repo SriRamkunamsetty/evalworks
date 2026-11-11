@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-security-config
+  namespace: ai-security-mesh
+data:
+  LOG_LEVEL: "INFO"
+  ENVIRONMENT: "production"
+  METRICS_ENABLED: "true"
+  DEFAULT_EVALUATION_TIMEOUT_SEC: "60"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ai-security-secrets
+  namespace: ai-security-mesh
+type: Opaque
+stringData:
+  OPENAI_API_KEY: "dummy-production-key-managed-by-vault"
+  CANARY_MASTER_KEY: "canary_sec_mesh_master_token_prod_9941"

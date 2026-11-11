@@ -1,0 +1,371 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jailbreaklab-fuzzer
+  namespace: ai-security-mesh
+  labels:
+    app: jailbreaklab-fuzzer
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: jailbreaklab-fuzzer
+  template:
+    metadata:
+      labels:
+        app: jailbreaklab-fuzzer
+    spec:
+      containers:
+        - name: fuzzer
+          image: ghcr.io/alignerr/jailbreaklab-fuzzer:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8001
+          envFrom:
+            - configMapRef:
+                name: ai-security-config
+            - secretRef:
+                name: ai-security-secrets
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: indirect-inject-rag
+  namespace: ai-security-mesh
+  labels:
+    app: indirect-inject-rag
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: indirect-inject-rag
+  template:
+    metadata:
+      labels:
+        app: indirect-inject-rag
+    spec:
+      containers:
+        - name: rag-bench
+          image: ghcr.io/alignerr/indirect-inject-rag:latest
+          ports:
+            - containerPort: 8002
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 10
+            periodSeconds: 15
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: canaryleak-scanner
+  namespace: ai-security-mesh
+  labels:
+    app: canaryleak-scanner
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: canaryleak-scanner
+  template:
+    metadata:
+      labels:
+        app: canaryleak-scanner
+    spec:
+      containers:
+        - name: scanner
+          image: ghcr.io/alignerr/canaryleak-scanner:latest
+          ports:
+            - containerPort: 8003
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8003
+            initialDelaySeconds: 10
+            periodSeconds: 15
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agenthijack-auditor
+  namespace: ai-security-mesh
+  labels:
+    app: agenthijack-auditor
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: agenthijack-auditor
+  template:
+    metadata:
+      labels:
+        app: agenthijack-auditor
+    spec:
+      containers:
+        - name: auditor
+          image: ghcr.io/alignerr/agenthijack-auditor:latest
+          ports:
+            - containerPort: 8004
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8004
+            initialDelaySeconds: 10
+            periodSeconds: 15
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: owasp-llm-bench
+  namespace: ai-security-mesh
+  labels:
+    app: owasp-llm-bench
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: owasp-llm-bench
+  template:
+    metadata:
+      labels:
+        app: owasp-llm-bench
+    spec:
+      containers:
+        - name: bench
+          image: ghcr.io/alignerr/owasp-llm-bench:latest
+          ports:
+            - containerPort: 8005
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8005
+            initialDelaySeconds: 10
+            periodSeconds: 15
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crescendo-multiturn
+  namespace: ai-security-mesh
+  labels:
+    app: crescendo-multiturn
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: crescendo-multiturn
+  template:
+    metadata:
+      labels:
+        app: crescendo-multiturn
+    spec:
+      containers:
+        - name: simulator
+          image: ghcr.io/alignerr/crescendo-multiturn:latest
+          ports:
+            - containerPort: 8006
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8006
+            initialDelaySeconds: 10
+            periodSeconds: 15
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: guardrailgate-devsecops
+  namespace: ai-security-mesh
+  labels:
+    app: guardrailgate-devsecops
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: guardrailgate-devsecops
+  template:
+    metadata:
+      labels:
+        app: guardrailgate-devsecops
+    spec:
+      containers:
+        - name: gate
+          image: ghcr.io/alignerr/guardrailgate-devsecops:latest
+          ports:
+            - containerPort: 8007
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8007
+            initialDelaySeconds: 10
+            periodSeconds: 15
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: safety-rubric-calibrator
+  namespace: ai-security-mesh
+  labels:
+    app: safety-rubric-calibrator
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: safety-rubric-calibrator
+  template:
+    metadata:
+      labels:
+        app: safety-rubric-calibrator
+    spec:
+      containers:
+        - name: calibrator
+          image: ghcr.io/alignerr/safety-rubric-calibrator:latest
+          ports:
+            - containerPort: 8008
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8008
+            initialDelaySeconds: 10
+            periodSeconds: 15
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: multimodal-vision-jailbreak
+  namespace: ai-security-mesh
+  labels:
+    app: multimodal-vision-jailbreak
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: multimodal-vision-jailbreak
+  template:
+    metadata:
+      labels:
+        app: multimodal-vision-jailbreak
+    spec:
+      containers:
+        - name: vision-eval
+          image: ghcr.io/alignerr/multimodal-vision-jailbreak:latest
+          ports:
+            - containerPort: 8009
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8009
+            initialDelaySeconds: 10
+            periodSeconds: 15
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aivd-vulnerability-studio
+  namespace: ai-security-mesh
+  labels:
+    app: aivd-vulnerability-studio
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: aivd-vulnerability-studio
+  template:
+    metadata:
+      labels:
+        app: aivd-vulnerability-studio
+    spec:
+      containers:
+        - name: studio
+          image: ghcr.io/alignerr/aivd-vulnerability-studio:latest
+          ports:
+            - containerPort: 8010
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8010
+            initialDelaySeconds: 10
+            periodSeconds: 15

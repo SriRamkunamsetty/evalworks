@@ -1,0 +1,17 @@
+services:
+  crescendo-simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: crescendo-simulator
+    ports:
+      - "8006:8006"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8006
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8006/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3

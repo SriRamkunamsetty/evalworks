@@ -21,6 +21,7 @@ jobs:
       - run: ruff check .
       - run: pytest
       - run: node --check src/evalworks/web/app.js
+      - run: python -m evalworks.cli security-gate
       - run: python -m compileall -q src tests migrations
   dependency-audit:
     runs-on: ubuntu-latest

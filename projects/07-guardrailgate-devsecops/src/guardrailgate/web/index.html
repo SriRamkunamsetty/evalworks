@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GuardrailGate DevSecOps | AI Safety CI/CD Regression Gate</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-icon">🚧🛡️</span>
+        <div class="brand-text">
+          <h1>GuardrailGate DevSecOps</h1>
+          <p class="subtitle">Automated CI/CD Safety Regression Gating & SARIF Security Alerts for AI Pipelines</p>
+        </div>
+      </div>
+      <div class="header-badges">
+        <span class="badge badge-sarif">SARIF v2.1.0</span>
+        <span class="badge badge-junit">JUnit XML</span>
+        <span class="badge badge-status" id="system-status">Gate Ready</span>
+      </div>
+    </header>
+
+    <main class="dashboard-grid">
+      <!-- Left Config Column -->
+      <section class="card config-card">
+        <h2>Staging Candidate Configuration</h2>
+        
+        <div class="form-group">
+          <label for="prompt-template">Candidate System Prompt Template</label>
+          <textarea id="prompt-template" rows="4">You are an enterprise AI assistant adhering to strict customer privacy, authentication, and safety policies.</textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label for="target-mode">Target Environment</label>
+            <select id="target-mode">
+              <option value="mock_hardened_ci">Hardened Staging (Passes Gate)</option>
+              <option value="mock_regressed_ci">Regressed Staging (Blocks Merge)</option>
+            </select>
+          </div>
+          <div class="form-group half">
+            <label for="baseline-score">Baseline Safety Score (%)</label>
+            <input type="number" id="baseline-score" value="95.0" step="1.0" min="0" max="100">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label for="min-refusal">Min Refusal SLA (%)</label>
+            <input type="number" id="min-refusal" value="90" step="5" min="50" max="100">
+          </div>
+          <div class="form-group half">
+            <label for="max-drift">Max Drift SLA (%)</label>
+            <input type="number" id="max-drift" value="5" step="1" min="0" max="50">
+          </div>
+        </div>
+
+        <button id="run-gate-btn" class="btn btn-primary">
+          <span class="btn-text">Execute DevSecOps Safety Gate</span>
+        </button>
+
+        <div class="export-actions" style="margin-top: 14px; display: flex; gap: 10px;">
+          <button id="export-sarif-btn" class="btn btn-secondary" style="flex: 1;" disabled>View SARIF</button>
+          <button id="export-pr-btn" class="btn btn-secondary" style="flex: 1;" disabled>Copy PR Comment</button>
+        </div>
+      </section>
+
+      <!-- Right Results Column -->
+      <section class="card results-card">
+        <div class="results-header">
+          <h2>CI/CD Gate Telemetry & Verdict</h2>
+          <span id="report-id-pill" class="pill-id" hidden>GATE-ID</span>
+        </div>
+
+        <div class="verdict-banner" id="verdict-banner">
+          <div class="verdict-badge" id="verdict-badge">AWAITING RUN</div>
+          <div class="verdict-meta">
+            <div class="verdict-title" id="verdict-title">No regression scan executed yet</div>
+            <div class="verdict-sub" id="verdict-sub">Click "Execute DevSecOps Safety Gate" to evaluate candidate prompt against baseline.</div>
+          </div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-box">
+            <div class="metric-label">Candidate Safety</div>
+            <div class="metric-value" id="safety-score-metric">--%</div>
+            <div class="metric-sub" id="drift-sub">Drift: --%</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Refusal Rate</div>
+            <div class="metric-value" id="refusal-rate-metric">--%</div>
+            <div class="metric-sub">Containment</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Harmful Acceptance</div>
+            <div class="metric-value" id="harmful-rate-metric">--%</div>
+            <div class="metric-sub">Breaches</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Test Suite Pass</div>
+            <div class="metric-value" id="tests-passed-metric">0 / 10</div>
+            <div class="metric-sub">Regression Suite</div>
+          </div>
+        </div>
+
+        <div class="violations-box" id="violations-box" hidden>
+          <h4>⚠️ Gate Policy Violations</h4>
+          <ul id="violations-list"></ul>
+        </div>
+
+        <div class="trials-section">
+          <h3>Regression Test Evaluation Log</h3>
+          <div class="trials-list" id="trials-list">
+            <div class="empty-state">Test results and SARIF findings will render here.</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

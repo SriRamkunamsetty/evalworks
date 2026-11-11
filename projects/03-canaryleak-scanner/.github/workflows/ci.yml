@@ -1,0 +1,38 @@
+name: CanaryLeak Scanner CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    name: Lint & Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff pytest httpx fastapi uvicorn pydantic
+          pip install -e .
+
+      - name: Lint with Ruff
+        run: |
+          ruff check .
+
+      - name: Run Test Suite
+        run: |
+          pytest -v
+
+      - name: Run CLI Guardrail Gate
+        run: |
+          canaryleak audit --target mock_hardened

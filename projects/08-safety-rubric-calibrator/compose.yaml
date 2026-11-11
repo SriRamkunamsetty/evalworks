@@ -1,0 +1,17 @@
+services:
+  safety-rubric-calibrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: safety-rubric-calibrator
+    ports:
+      - "8008:8008"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8008
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8008/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
